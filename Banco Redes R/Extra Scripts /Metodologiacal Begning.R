@@ -66,6 +66,7 @@ krack_reports_to <- delete.edges(krack_full, E(krack_full)[get.edge.attribute(kr
 summary(krack_reports_to)
 
 
+var0 = delete.edges(full_no_zero, E(full_no_zero)[get.edge.attribute(full_no_zero,name = "var0") == 0])
 ### 
 # 3. NODE-LEVEL STATISTICS
 ###
@@ -113,8 +114,8 @@ reachability <- function(g, m) {
   return(reach_mat)
 }
 
-reach_full_in <- reachability(krack_full, 'in')
-reach_full_out <- reachability(krack_full, 'out')
+  reach_full_in <- reachability(krack_full, 'in')
+  reach_full_out <- reachability(krack_full, 'out')
 reach_full_in
 reach_full_out
 

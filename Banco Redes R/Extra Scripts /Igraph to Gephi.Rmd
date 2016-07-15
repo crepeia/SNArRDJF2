@@ -1,0 +1,99 @@
+---
+title: "Igraph to GEXF"
+author: "Leonardo Martins"
+date: "13 de julho de 2016"
+output: html_document
+---
+
+
+#GEXF Function to export igraph objects to Gephi 
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+saveAsGEXF = function(g, filepath="converted_graph.gexf")
+  
+{
+  
+  # gexf nodes require two column data frame (id, label)
+  
+  # check if the input vertices has label already present
+  
+  # if not, just have the ids themselves as the label
+  
+  if(is.null(V(g)$label))
+    
+    V(g)$label <- as.character(V(g)$name)
+  
+  # similarily if edges does not have weight, add default 1 weight
+  
+  if(is.null(E(g)$weight))
+    
+    E(g)$weight <- rep.int(1, ecount(g))
+  
+  nodes <- data.frame(cbind(V(g), V(g)$label))
+  
+  edges <- t(Vectorize(get.edge, vectorize.args='id')(g, 1:ecount(g)))
+  
+  # combine all node attributes into a matrix (and take care of & for xml)
+  
+  vAttrNames <- setdiff(list.vertex.attributes(g), "label")
+  
+  nodesAtt <- data.frame(sapply(vAttrNames, function(attr) sub("&", "&",get.vertex.attribute(g, attr))),
+                         
+                         stringsAsFactors = FALSE)
+  
+  # combine all edge attributes into a matrix (and take care of & for xml)
+  
+  eAttrNames <- setdiff(list.edge.attributes(g), "weight")
+  
+  edgesAtt <- data.frame(sapply(eAttrNames, function(attr) sub("&", "&",get.edge.attribute(g, attr))),
+                         
+                         stringsAsFactors = FALSE)
+  
+  # generate the gexf object
+  
+  output <- write.gexf(nodes, edges,
+                       
+                       edgesWeight=E(g)$weight,
+                       
+                       edgesAtt = edgesAtt,
+                       
+                       nodesAtt = nodesAtt)
+  
+  print(output, filepath, replace=T)
+  
+}
+```
+
+#Exporting Gexf objects to Banco Redes R - code is not running 
+```{r, , message=FALSE, warning=FALSE, include=FALSE}
+saveAsGEXF(gMatriz_x2.csv, "~/Banco Redes R/Matriz_x2.gexf")
+saveAsGEXF(gMatriz_0.csv, "~/Banco Redes R/Matriz_0.gexf")
+saveAsGEXF(gMatriz_1.csv, "~/Banco Redes R/Matriz_1.gexf")
+saveAsGEXF(gMatriz_2.csv, "~/Banco Redes R/Matriz_2.gexf")
+saveAsGEXF(gMatriz_3.csv, "~/Banco Redes R/Matriz_3.gexf")
+saveAsGEXF(gMatriz_4.csv, "~/Banco Redes R/Matriz_4.gexf")
+saveAsGEXF(gMatriz_5.csv, "~/Banco Redes R/Matriz_5.gexf")
+saveAsGEXF(gMatriz_6.csv, "~/Banco Redes R/Matriz_6.gexf")
+saveAsGEXF(gMatriz_7.csv, "~/Banco Redes R/Matriz_7.gexf")
+saveAsGEXF(gMatriz_8.csv, "~/Banco Redes R/Matriz_8.gexf")
+saveAsGEXF(gMatriz_9.csv, "~/Banco Redes R/Matriz_9.gexf")
+saveAsGEXF(gMatriz_10.csv, "~/Banco Redes R/Matriz_10.gexf")
+saveAsGEXF(gMatriz_11.csv, "~/Banco Redes R/Matriz_11.gexf")
+saveAsGEXF(gMatriz_12.csv, "~/Banco Redes R/Matriz_12.gexf")
+saveAsGEXF(gMatriz_13.csv, "~/Banco Redes R/Matriz_13.gexf")
+saveAsGEXF(gMatriz_14.csv, "~/Banco Redes R/Matriz_14.gexf")
+saveAsGEXF(gMatriz_15.csv, "~/Banco Redes R/Matriz_15.gexf")
+saveAsGEXF(gMatriz_16.csv, "~/Banco Redes R/Matriz_16.gexf")
+saveAsGEXF(gMatriz_17.csv, "~/Banco Redes R/Matriz_17.gexf")
+saveAsGEXF(gMatriz_18.csv, "~/Banco Redes R/Matriz_18.gexf")
+saveAsGEXF(gMatriz_19.csv, "~/Banco Redes R/Matriz_19.gexf")
+saveAsGEXF(gMatriz_20.csv, "~/Banco Redes R/Matriz_20.gexf")
+saveAsGEXF(gMatriz_21.csv, "~/Banco Redes R/Matriz_21.gexf")
+saveAsGEXF(gMatriz_22.csv, "~/Banco Redes R/Matriz_22.gexf")
+saveAsGEXF(gMatriz_23.csv, "~/Banco Redes R/Matriz_23.gexf")
+saveAsGEXF(gMatriz_24.csv, "~/Banco Redes R/Matriz_24.gexf")
+saveAsGEXF(gMatriz_atividade.csv, "~/Banco Redes R/atividade.gexf")
+saveAsGEXF(gMatriz_acesso.csv, "~/Banco Redes R/acesso.gexf")
+saveAsGEXF(gMatriz_confianca.csv, "~/Banco Redes R/confianca.gexf")
+saveAsGEXF(gMatriz_total.csv, "~/Banco Redes R/total.gexf")
+```
+
