@@ -1432,11 +1432,11 @@ legend(x=1, y=1.25,
 #Plotting HITS by Degree
 ```{r}
 # We will plot 6 graphs in 2 rows and 3 columns:
-V(full_no_zero)$prPB<-page_rank(full_no_zero)$vector
-V(full_no_zero)$hPB<-hub.score(full_no_zero)$vector
-V(full_no_zero)$authPB<-authority.score(full_no_zero)$vector
-V(full_no_zero)$indegPB<-degree(full_no_zero, mode="in")
-V(full_no_zero)$outdegPB<-degree(full_no_zero, mode="out")
+prPB<-page_rank(full_no_zero)$vector
+hPB<-hub.score(full_no_zero)$vector
+authPB<-authority.score(full_no_zero)$vector
+indegPB<-degree(full_no_zero, mode="in")
+outdegPB<-degree(full_no_zero, mode="out")
 
   
 op <- par(mfrow = c(2, 3))
@@ -1460,14 +1460,14 @@ outdegnamesPB=which(outdegPB>sort(outdegPB)[vcount(full_no_zero)-5]) #For PageRa
 prnamesPB=which(prPB>sort(prPB)[vcount(full_no_zero)-5]) #For Hubs:
 hnamesPB=which(hPB>sort(hPB)[vcount(full_no_zero)-5]) #For Authorities:
 authnamesPB=which(authPB>sort(authPB)[vcount(full_no_zero)-5])
-namematch=
 ##Create a matrix to output:
-topnamesPB=cbind(indegnamesPB,outdegnamesPB,authnamesPB,prnamesPB, hnamesPB, )
+topnamesPB=cbind(indegnamesPB,outdegnamesPB,authnamesPB,prnamesPB, hnamesPB)
 #Assign column names:
 colnames(topnamesPB) <- c("In- degree","Out- degree", "Authorities", "PageRank","Hubs")
 row.names(topnamesPB) <- c("Assistência Hospitalar - Hospital de Pronto.Socorro", "Ambulatório de Saúde.Mental", "CAPS-AD", "Urgência.Emergência - SAMU.", "CAPS-Casa Viva")
 
 topnamesPB
+#I need to double check this result as we would expect CAPS AD top #1
 ```
 
 
@@ -1483,7 +1483,9 @@ plot(make_ego_graph_all_full_no_zero,
      vertex.label=get.vertex.attribute(make_ego_graph_all_full_no_zero,"LABEL_COR"),
      vertex.size=30*sqrt(page.rank(make_ego_graph_all_full_no_zero)$vector),
      edge.arrow.size=0.1,
-     vertex.label.cex=log(degree(make_ego_graph_all_full_no_zero))/10,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     vertex.label.cex=log(degree(make_ego_graph_all_full_no_zero)+1)/10,
      edge.width=log(edge.betweenness(make_ego_graph_all_full_no_zero))/100,
      edge.curved = TRUE)
 
@@ -1526,9 +1528,11 @@ make_ego_graph_out_full_no_zero<-make_ego_graph(full_no_zero, order=1, V(full_no
 plot(make_ego_graph_out_full_no_zero, 
      layout=layout.kamada.kawai(make_ego_graph_out_full_no_zero), 
      vertex.label=get.vertex.attribute(make_ego_graph_out_full_no_zero,"LABEL_COR"),
-     vertex.size=30*sqrt(page.rank(make_ego_graph_out_full_no_zero)$vector),
+     vertex.size=100*page.rank(make_ego_graph_out_full_no_zero)$vector,
      edge.arrow.size=0.1,
-     vertex.label.cex=log(degree(make_ego_graph_out_full_no_zero))/10,
+    vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     vertex.label.cex=log(degree(make_ego_graph_out_full_no_zero)+1)/10,
      edge.width=log(edge.betweenness(make_ego_graph_out_full_no_zero))/100,
      edge.curved = TRUE)
 
@@ -1571,8 +1575,10 @@ make_ego_graph_in_full_no_zero<-make_ego_graph(full_no_zero, order=1, V(full_no_
 plot(make_ego_graph_in_full_no_zero, 
      layout=layout.kamada.kawai(make_ego_graph_in_full_no_zero), 
      vertex.label=get.vertex.attribute(make_ego_graph_in_full_no_zero,"LABEL_COR"),
-     vertex.size=30*sqrt(page.rank(make_ego_graph_in_full_no_zero)$vector),
+     vertex.size=100*page.rank(make_ego_graph_in_full_no_zero)$vector,
      edge.arrow.size=0.1,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
      vertex.label.cex=log(degree(make_ego_graph_in_full_no_zero))/10,
      edge.width=log(edge.betweenness(make_ego_graph_in_full_no_zero))/100,
      edge.curved = TRUE)
@@ -1616,12 +1622,13 @@ make_ego_graph_all_full_no_zero_without_CAPSAD<-delete_vertices(make_ego_graph_a
 plot(make_ego_graph_all_full_no_zero_without_CAPSAD, 
      layout=layout.kamada.kawai(make_ego_graph_all_full_no_zero_without_CAPSAD), 
      vertex.label=get.vertex.attribute(make_ego_graph_all_full_no_zero_without_CAPSAD,"LABEL_COR"),
-     vertex.size=30*sqrt(page.rank(make_ego_graph_all_full_no_zero_without_CAPSAD)$vector),
+     vertex.size=100*page.rank(make_ego_graph_all_full_no_zero_without_CAPSAD)$vector,
      edge.arrow.size=0.1,
-     vertex.label.cex=log(degree(make_ego_graph_all_full_no_zero_without_CAPSAD))/10,
-     edge.width=log(edge.betweenness(make_ego_graph_all_full_no_zero_without_CAPSAD))/10,
+     vertex.frame.color="#ffffff",
+      vertex.label.color="black",
+     vertex.label.cex=log(page.rank(make_ego_graph_all_full_no_zero_without_CAPSAD)$vector+1)*10,
+     edge.width=edge.betweenness(make_ego_graph_all_full_no_zero_without_CAPSAD)/500,
      edge.curved = TRUE)
-
 #Solving Problems with legend rendering 
 a<-V(make_ego_graph_all_full_no_zero_without_CAPSAD)$LABEL_COR
 b<-V(make_ego_graph_all_full_no_zero_without_CAPSAD)$color
@@ -1678,8 +1685,10 @@ plot(make_ego_graph_all_full_no_zero_without_complex,
      vertex.label=get.vertex.attribute(make_ego_graph_all_full_no_zero_without_complex,"LABEL_COR"),
      vertex.size=30*sqrt(page.rank(make_ego_graph_all_full_no_zero_without_complex)$vector),
      edge.arrow.size=0.1,
-     vertex.label.cex=log(degree(make_ego_graph_all_full_no_zero_without_complex))/10,
-     edge.width=log(edge.betweenness(make_ego_graph_all_full_no_zero_without_complex))/10,
+     vertex.label.cex=log(page.rank(make_ego_graph_all_full_no_zero_without_complex)$vector+1)/10,
+     edge.width=edge.betweenness(make_ego_graph_all_full_no_zero_without_complex)/500,
+     vertex.frame.color="#ffffff",
+      vertex.label.color="black",
      edge.curved = TRUE)
 
 #Solving Problems with legend rendering 
@@ -1725,6 +1734,8 @@ plot(msp_full_no_zero,
      edge.arrow.size=0.1,
      vertex.label.cex=sqrt(degree(msp_full_no_zero))/50,
      edge.width=log(edge.betweenness(msp_full_no_zero, weights =E(msp_full_no_zero)$msp_full_no_zero))/5,
+      vertex.frame.color="#ffffff",
+      vertex.label.color="black",
      edge.curved = TRUE
      )
 
@@ -1757,8 +1768,57 @@ legend(x=1, y=1.25,
      median(degree(msp_full_no_zero, mode="out"))
    ))
 ```
+#2.11.1.1 Alternative Visualization - Minimum spanning tree non-normalized that connects all the vertices together with the minimal total edges. - it seems that we have a problem with legends - check this out further
+```{r}
+#Creating Minimum spanning tree
+msp_full_no_zero<-mst(full_no_zero)
 
-#2.11.2 Minimum weighted spanning tree that connects all the vertices together with the minimal total weighting for its edges. - it seems that we have a problem with legends - check this out further
+#Plotting based only on degree measures 
+plot(msp_full_no_zero, 
+     layout=layout.auto(msp_full_no_zero), 
+     vertex.label=get.vertex.attribute(msp_full_no_zero,"LABEL_COR"),
+     vertex.size=sqrt(degree(msp_full_no_zero)),
+     edge.arrow.size=0.1,
+     vertex.label.cex=sqrt(degree(msp_full_no_zero))/50,
+     edge.width=log(edge.betweenness(msp_full_no_zero, weights=E(msp_full_no_zero)$msp_full_no_zero))/5,
+      vertex.frame.color="#ffffff",
+      vertex.label.color="black",
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(msp_full_no_zero)$LABEL_COR
+b<-V(msp_full_no_zero)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Alternative Visualization -Minimum Spanning Tree Non-normalized - from full_no_zero_fancy", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Degree: %.2f\nMedian Out Degree: %.2f",
+     median(degree(msp_full_no_zero, mode="in")), 
+     median(degree(msp_full_no_zero, mode="out"))
+   ))
+
+
+```
+
+#2.11.1.2 Minimum weighted spanning tree that connects all the vertices together with the minimal total weighting for its edges. - it seems that we have a problem with legends - check this out further
 ```{r}
 #Creating Minimum weighted spanning tree
 msp_full_no_zero_w<-minimum.spanning.tree(full_no_zero, weights=1/edge.betweenness(full_no_zero, weights =E(full_no_zero)$full_no_zero), algorithm='prim')
@@ -1767,12 +1827,14 @@ msp_full_no_zero_w<-minimum.spanning.tree(full_no_zero, weights=1/edge.betweenne
 
 #Plotting based only on degree measures 
 plot(msp_full_no_zero_w, 
-     layout=layout.kamada.kawai(msp_full_no_zero_w), 
+     layout=layout.auto(msp_full_no_zero_w), 
      vertex.label=get.vertex.attribute(msp_full_no_zero_w,"LABEL_COR"),
      vertex.size=sqrt(degree(msp_full_no_zero_w)),
      edge.arrow.size=0.1,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
      vertex.label.cex=sqrt(degree(msp_full_no_zero_w))/20,
-     edge.width=1/edge.betweenness(msp_full_no_zero_w, weights =E(msp_full_no_zero_w)$msp_full_no_zero_w),
+     edge.width=1/edge.betweenness(msp_full_no_zero_w, weights =E(msp_full_no_zero_w)$msp_full_no_zero_w)*2,
      edge.curved = TRUE
      )
 
@@ -1858,6 +1920,8 @@ plot(full_no_zero,
                       components_strong_full_no_zero$membership, 
                       invisible),   ## Add community indicating background colors
      edge.arrow.size=0.1,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
      vertex.label.cex=log(degree(full_no_zero)+1)/10,
      edge.width=edge.betweenness(full_no_zero, weights =E(full_no_zero)$full_no_zero)/500,
      edge.curved = TRUE
@@ -1945,7 +2009,7 @@ census_labels = c('003',
 
 #Saving in a dataframe for further studies
 triad_df_full_no_zero <- data.frame(census_labels,tc_full_no_zero)
-write.csv(triad_df_full_no_zero, "~/SNArRDJF/Banco Redes R/full_no_zero_complet_triads.csv)
+write.csv(triad_df_full_no_zero, "~/SNArRDJF/Banco Redes R/full_no_zero_complet_triads.csv")
 ```
 
 #3.5.1 - Triad Census Types 
@@ -2021,7 +2085,6 @@ col <- col[full_no_zero_dist.from.CAPSAD+1]
 
 #Saving as Vertex properties
 V(full_no_zero)$col<-col
-
 
 #Plotting distance from CAPSAD 
 plot(full_no_zero, 
@@ -2104,19 +2167,15 @@ full_no_zero_u <- as.undirected(full_no_zero, mode= "collapse",
 #3.9.1
 #Find cliques (complete subgraphs of an undirected graph)
 
-Graph clique is a subset of vertices of a graph such that every two vertices in the clique are adjacent.
-
+Graph clique is a subset of vertices of a graph such that every two vertices in the clique are adjacent. - ***To check****
 
 ```{r}
-#cliques_full_no_zero_u<-cliques(full_no_zero_u) # list of cliques       
+cliques_full_no_zero_u<-cliques(full_no_zero_u) # list of cliques       
 #cliques_full_no_zero_u_size<-sapply(cliques(full_no_zero_u), length) # clique sizes
 largest_cliques(full_no_zero_u) # cliques with max number of nodes
 ```
 
-A maximum clique is a clique that cannot be extended by including one more adjacent vertex (not included in larger one). 
-
-A maximal clique is a clique of the largest possible size in a given graph.
-And, finally, graph clique number is the size of the maximum clique.
+A maximum clique is a clique that cannot be extended by including one more adjacent vertex (not included in larger one). It can be defined also as a clique of the largest possible size in a given graph.The graph clique number is the size of the maximum clique.
 
 #3.9.2 Counting cliques
 ```{r}
@@ -2126,10 +2185,45 @@ clique_num(full_no_zero_u)
 count_max_cliques(full_no_zero_u)
 ```
 
+#3.9.2.1 Plotting Largest Cliques - It needs to be improved and I'm not sure if it can handle nice information - check the bellow graph
 ```{r}
-largest = largest.cliques(g) 
-op = par(mfrow = c(1,2)) labels = rep(0, vcount(g))
-labels[largest[[1]]] = 2 plot(g, vertex.color = labels) labels = rep(0, vcount(g)) labels[largest[[2]]] = 2 plot(g, vertex.color = labels)
+#Find largest clique
+largest = largest.cliques(full_no_zero_u)
+
+#Create Label for first one
+labels1 = rep(0, vcount(full_no_zero_u))
+labels1[largest[[1]]] = 2 
+
+#Create Label for second one
+labels2 = rep(0,vcount(full_no_zero_u)) 
+labels2[largest[[2]]] = 2 
+
+op = par(mfrow = c(1,2)) 
+#Plotting based only on degree measures 
+plot(full_no_zero_u, 
+     layout=layout.kamada.kawai(full_no_zero_u), 
+     vertex.label=get.vertex.attribute(full_no_zero,"LABEL_COR"),
+     vertex.color = labels1,
+     vertex.size=degree(full_no_zero_u)/2,
+     vertex.frame.color="#ffffff",
+     edge.arrow.size=degree(full_no_zero_u)/10000,
+     vertex.label.cex=degree(full_no_zero_u)/600,
+     edge.width=(edge.betweenness(full_no_zero_u, weights =E(full_no_zero)$full_no_zero))/500,
+     edge.curved = TRUE
+     )
+  #Plotting based only on degree measures 
+plot(full_no_zero_u, 
+     layout=layout.kamada.kawai(full_no_zero_u), 
+     vertex.label=get.vertex.attribute(full_no_zero,"LABEL_COR"),
+     vertex.color = labels2,
+     vertex.size=degree(full_no_zero_u)/2,
+     vertex.frame.color="#ffffff",
+     edge.arrow.size=degree(full_no_zero_u)/10000,
+     vertex.label.cex=degree(full_no_zero_u)/600,
+     edge.width=(edge.betweenness(full_no_zero_u, weights =E(full_no_zero)$full_no_zero))/5000,
+     edge.curved = TRUE
+     )
+par(op)
 ```
 
 
@@ -2155,8 +2249,8 @@ plot(as.undirected(full_no_zero_u),
      vertex.color=vcol,
      vertex.size=sqrt(degree(as.undirected(full_no_zero_u))),
      edge.arrow.size=0.1,
-     vertex.label.cex=log(degree(as.undirected(full_no_zero_u)))/10,
-     edge.width=log(edge.betweenness(as.undirected(full_no_zero_u), weights =E(as.undirected(full_no_zero_u))$full_no_zero))/5,
+     vertex.label.cex=log(degree(as.undirected(full_no_zero_u))+1)/10,
+     edge.width=log(edge.betweenness(as.undirected(full_no_zero_u), weights =E(as.undirected(full_no_zero_u))$full_no_zero))/50,
      edge.curved = TRUE
      )
 
@@ -2190,22 +2284,23 @@ legend(x=1, y=1.25,
    ))
 ```
 
-k-core
-k-core is a maximal subset of vertices such that each is connected to at least k others in the subset.
-R has a function wich calculates the coreness for each vertex. The coreness of a vertex is k if it belongs to the k-core but not to the (k+1)-core.
+#3.9.4 K-core
+k-core is a maximal subset of vertices such that each is connected to at least k others in the subset.R has a function wich calculates the coreness for each vertex.The coreness of a vertex is k if it belongs to the k-core but not to the (k+1)-core.
 
-Now we find maximum k-core and pick out it on graph
-
+#3.9.4.1 Finding maximum k-core and pick out it on graph
 ```{r}
- coreness <- graph.coreness(z) max_cor <- max(coreness) max_cor
+coreness <- graph.coreness(full_no_zero) 
+max_cor <- max(coreness) 
+max_cor
 ```
 
+#3.9.4.2 Heat map for coreness
 ```{r}
 color_bar <- heat.colors(max_cor)
-plot(z, vertex.color = color_bar[coreness])
+plot(full_no_zero, vertex.color = color_bar[coreness])
 ```
 
-Network communities
+#4. Network communities
 Network communities are groups of vertices such that vertices inside the group connected with many more edges than between groups.
 
 Edge betweenness Edge betweenness is equal to the number of shortest paths σst(e) from all vertices
@@ -2216,16 +2311,15 @@ to all others that pass through that edge e
 #Edge Betweenness
 E(full_no_zero)$edge.btweenness<-edge.betweenness(full_no_zero, weights =E(full_no_zero)$full_no_zero)
 full_no_zero_edge.betweenness <-edge.betweenness(full_no_zero, weights =E(full_no_zero)$full_no_zero)
-
-
 ```
 
 The Newman-Girvan algorithm detects communities by progressively removing edges from the original network. The Girvan-Newman algorithm focuses on edges that are most likely “between” communities.
+
 Algorithm:
-• Step 1: the betweenness of all existing edges in the network is calculated first. • Step 2: the edge with the highest betweenness is removed.
+• Step 1: the betweenness of all existing edges in the network is calculated first. 
+• Step 2: the edge with the highest betweenness is removed.
 • Step 3: the betweenness of all edges affected by the removal is recalculated.
 • Step 4: steps 2 and 3 are repeated until no edges remain.
-
 
 ```{r}
 #Edge Betweenness Descriptive
@@ -2358,9 +2452,6 @@ legend(x=1, y=1.25,
      median(degree(full_no_zero, mode="out"))
    ))
 ```
-
-
-
 
 #3.12 Decomposed Graph 
 ```{r}
