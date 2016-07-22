@@ -1,0 +1,85 @@
+---
+title: "Untitled"
+author: "Leonardo Martins"
+date: "19 de julho de 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+op <- par(mfrow = c(2, 3))
+plot(deg, clos, xlab="Degree", ylab="Closeness", col="blue")
+plot(deg, betw, xlab="Degree", ylab="Betweenness", col="blue")
+plot(deg, ev, xlab="Degree", ylab="Eigenvector", col="blue")
+plot(clos, betw, xlab="Closeness", ylab="Betweenness", col="blue")
+plot(clos, ev, xlab="Closeness", ylab="Eigenvector", col="blue")
+plot(betw, ev, xlab="Betweenness", ylab="Eigenvector", col="blue")
+```
+
+```{r}
+#Now we will print top ten names in each ranking:
+
+#For in- degrees:
+indegnamesPB=which(indegPB>sort(indegPB)[vcount(PB)-10])
+
+#For out- degrees:
+outdegnamesPB=which(outdegPB>sort(outdegPB)[vcount(PB)-10])
+
+#For PageRank:
+prnamesPB=which(prPB>sort(prPB)[vcount(PB)-10])
+
+#For Hubs:
+hnamesPB=which(hPB>sort(hPB)[vcount(PB)-10])
+
+#For Authorities:
+authnamesPB=which(authPB>sort(authPB)[vcount(PB)-10])
+
+##Create a matrix to output:
+topnamesPB=cbind(indegnamesPB, authnamesPB, prnamesPB, outdegnamesPB, hnamesPB)
+#Assign column names:
+colnames(topnamesPB) <- c("In- degree", "Authorities", "PageRank", "Out- degree", "Hubs")
+topnamesPB
+##       In- degree Authorities PageRank Out- degree Hubs
+##  [1,]         55          55       55         144   55
+##  [2,]        155         155      155         363   56
+##  [3,]        641         180      641         387   99
+##  [4,]        729         323      729         454  144
+##  [5,]        855         493      798         512  363
+##  [6,]        963         641      855         524  387
+##  [7,]       1051         642      963         855  454
+##  [8,]       1153         729     1051         880  512
+##  [9,]       1245         756     1153        1000  618
+## [10,]       1437        1051     1245        1101  644
+We want a nice table in HTML, don’t we? Let’s use an xtable package. Please install it now, load the library and use xtable function:
+
+library(xtable)
+toptablePB <- xtable(topnamesPB)
+print(toptablePB, floating=FALSE, type="html")
+
+```
+
+

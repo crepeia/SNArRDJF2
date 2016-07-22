@@ -1,0 +1,499 @@
+---
+title: "2. Basic Analysis"
+author: "Leonardo Martins"
+date: "16 de julho de 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 24. Loading objects generated with 1.Principal.Rmd Script - Please run this script only after run 1.Principal.Rmd
+```{r}
+load("~/SNArRDJF/Principal Objects.RData")
+```
+
+## 25. Reload packages
+```{r packages, message=TRUE, warning=TRUE}
+suppressMessages(require(XLConnect)) #packcage to extract xls mutiple sheets
+suppressMessages(require(readxl)) #packcage to read xls files
+suppressMessages(require(psych)) #return some descriptives stats
+suppressMessages(require(igraph)) #load package for social network analysis
+suppressMessages(require(networkD3)) #load package for sankey network
+suppressMessages(library(rgexf)) #Regular expression to deal with strings
+suppressMessages(library(reshape2)) #Used to manipulate matrix into dataframe with diferent shapes
+suppressMessages(library(igraph)) # SNA package 
+suppressMessages(library(miniCRAN))
+suppressMessages(library(magrittr))
+suppressMessages(library(keyplayer))
+suppressMessages(library(dplyr))
+suppressMessages(library(feather))
+suppressMessages(library(visNetwork))
+suppressMessages(library(knitr))
+suppressMessages(library(DT))
+suppressMessages(library(stringr))
+library(RColorBrewer)
+#library(gplots)
+#library(sna)
+```
+
+
+##26. Descriptive Analysis for Full No Zero - Complete Graph - All networks were generated using from this one
+```{r}
+#1. Vertices and Edges Number
+full_no_zero_vcount<-vcount(full_no_zero)
+full_no_zero_ecount<-ecount(full_no_zero)
+vcount(full_no_zero)
+ecount(full_no_zero)
+```
+
+```{r}
+#2. Centrality Degree
+
+#Saving in igrpah object
+V(full_no_zero)$indegree<-degree(full_no_zero, mode = "in")
+V(full_no_zero)$outdegree <- degree(full_no_zero, mode = "out")
+V(full_no_zero)$totaldegree <- degree(full_no_zero, mode = "total")
+
+#Saving in Global Environment as an object
+full_no_zero_indegree<-degree(full_no_zero, mode = "in")
+full_no_zero_outdegree<-degree(full_no_zero, mode = "out")
+full_no_zero_totaldegree<-degree(full_no_zero, mode = "total")
+
+#Centrality Degree Normalized
+V(full_no_zero)$indegree_n<-degree(full_no_zero, mode = "in", normalized = T)
+V(full_no_zero)$outdegree_n<- degree(full_no_zero, mode = "out", normalized = T)
+V(full_no_zero)$totaldegree_n<- degree(full_no_zero, mode = "total", normalized = T)
+
+#Saving in Global Environment as an object
+full_no_zero_indegree_n<-degree(full_no_zero, mode = "in", normalized = T)
+full_no_zero_outdegree_n<-degree(full_no_zero, mode = "out", normalized = T)
+full_no_zero_totaldegree_n<-degree(full_no_zero, mode = "total", normalized = T)
+
+## Degree distribution when the totality is considered 1
+V(full_no_zero)$degree.distribution<-degree.distribution(full_no_zero)
+full_no_zero_degree.distribution<-degree.distribution(full_no_zero)
+
+#Histogram full_no_zero degree
+hist(degree(full_no_zero)) 
+
+#Histogram full_no_zero degree
+hist(degree(full_no_zero, mode = "in", normalized = T))
+hist(degree(full_no_zero, mode = "out", normalized = T))
+hist(degree(full_no_zero, mode = "total", normalized = T))
+
+#Log-Log Degree Distribution - Scale Free Network ? 
+dd.full_no_zero <- degree.distribution(full_no_zero)
+d <- 1:max(degree(full_no_zero))-1
+ind <- (dd.full_no_zero != 0)
+
+plot(d[ind], 
+     dd.full_no_zero[ind], 
+     log="xy", 
+     col="blue",
+     xlab=c("Log-Degree"), 
+     ylab=c("Log-Intensity"),
+     main="Log-Log Degree Distribution full_no_zero"
+     )
+
+#Average Neighbor Degree versus vertex degree (log-log scale for full_no_zero)
+a.nn.deg.full_no_zero <- graph.knn(full_no_zero,V(full_no_zero))$knn
+
+plot(degree(full_no_zero), 
+     a.nn.deg.full_no_zero, 
+     log="xy", 
+     col="goldenrod", 
+     xlab=c("Log Vertex Degree"),
+     ylab=c("Log Average Neighbor Degree"),
+     main="Average Neighbor Degree versus vertex degree - log-log scale"
+     )
+
+
+#Circle Degree ***Too intense computation***
+#A_full_no_zero <- get.adjacency(full_no_zero, sparse=FALSE)
+#library(network)
+#g <- network::as.network.matrix(A_full_no_zero)
+#library(sna)
+#sna::gplot.target(g, degree(g), main="Degree",
+#circ.lab = FALSE, circ.col="skyblue",
+#usearrows = FALSE,
+#vertex.col=c("blue", rep("red", 32), "yellow"),
+#edge.col="darkgray")
+
+
+# Centrality Degree Descriptive Statistics
+##in
+summary(full_no_zero_indegree)
+sd(full_no_zero_indegree)
+##out
+summary(full_no_zero_outdegree)
+sd(full_no_zero_outdegree)
+##all
+summary(full_no_zero_totaldegree)
+sd(full_no_zero_totaldegree)
+
+# Centrality Degree Descriptive Statistics
+##in
+summary(full_no_zero_indegree_n)
+sd(full_no_zero_indegree_n)
+##out
+summary(full_no_zero_outdegree_n)
+sd(full_no_zero_outdegree_n)
+##all
+summary(full_no_zero_totaldegree_n)
+sd(full_no_zero_totaldegree_n)
+
+#Degree Probability
+summary(full_no_zero_degree.distribution)
+sd(full_no_zero_degree.distribution)
+```
+```{r}
+#Closeness 
+V(full_no_zero)$incloseness <- closeness(full_no_zero, mode = "in") #%>% round(6)
+V(full_no_zero)$outcloseness <- closeness(full_no_zero, mode = "out") #%>% round(6)
+V(full_no_zero)$totalcloseness <- closeness(full_no_zero, mode = "total") #%>% round(6)
+full_no_zero_incloseness<- closeness(full_no_zero, mode = "in") #%>% round(6)
+full_no_zero_outcloseness<- closeness(full_no_zero, mode = "out") #%>% round(6)
+full_no_zero_totalcloseness<- closeness(full_no_zero, mode = "total") #%>% round(6)
+
+# Closeness Degree Descriptive Statistics - centrality measures how many steps is required to access every other vertex from a given vertex.
+
+##in
+summary(full_no_zero_incloseness)
+sd(full_no_zero_incloseness)
+##out
+summary(full_no_zero_outcloseness)
+sd(full_no_zero_outcloseness)
+##all
+summary(full_no_zero_totalcloseness)
+sd(full_no_zero_totalcloseness)
+
+## Average path length between any two given nodes
+averagePathLength_full_no_zero <- average.path.length(full_no_zero)
+averagePathLength_full_no_zero
+```
+
+```{r}
+#Betweenness - number of geodesics (shortest paths) going through a vertex - A higher number means an more important node.
+V(full_no_zero)$betweenness <- betweenness(full_no_zero) %>% round(1)
+full_no_zero_betweenness <- betweenness(full_no_zero) %>% round(1)
+
+#Edge Betweenness
+E(full_no_zero)$edge.btweenness<-edge.betweenness(full_no_zero)
+full_no_zero_edge.betweenness <-edge.betweenness(full_no_zero)
+
+
+## Community structure detection based on edge betweenness
+communityEdgeBetwn_full_no_zero <- edge.betweenness.community(full_no_zero)
+
+##all
+summary(full_no_zero_betweenness)
+sd(full_no_zero_betweenness)
+
+#Edge Betweenness order - Tenth higher
+E(full_no_zero)[order(full_no_zero_edge.betweenness, decreasing=T)[1:10]]
+
+#Eigen_Centrality
+V(full_no_zero)$eigenvector <- eigen_centrality(full_no_zero, directed = TRUE) %$% vector %>% round(3)
+full_no_zero_eigenvector <- eigen_centrality(full_no_zero, directed = TRUE) %$% vector %>% round(3)
+
+#all
+summary(full_no_zero_eigenvector)
+sd(full_no_zero_eigenvector)
+
+#PageRank
+V(full_no_zero)$page.rank<-page.rank(full_no_zero)$vector
+full_no_zero_pr<-page.rank(full_no_zero)$vector
+#stats
+summary(full_no_zero_pr)
+sd(full_no_zero_pr)
+```
+
+```{r}
+#Kleinberg’s authority scores
+V(full_no_zero)$authority.score<- authority.score(full_no_zero)$vector
+full_no_zero_auth <- authority.score(full_no_zero)$vector
+
+#Authority Score Plot
+plot(full_no_zero, 
+     layout=layout.kamada.kawai(full_no_zero), 
+     main="Authorities", 
+     vertex.label="", 
+     vertex.size=10*sqrt(authority.score(full_no_zero)$vector)
+     )
+
+#Kleinberg’s hub scores
+V(full_no_zero)$hub <- hub.score(full_no_zero)$vector
+full_no_zero_hub<- hub.score(full_no_zero)$vector
+#stats
+summary(full_no_zero_hub)
+sd(full_no_zero_hub)
+
+#Hub Score Plot 
+plot(full_no_zero, 
+     layout=layout.kamada.kawai(full_no_zero), 
+     main="Hubs", vertex.label="",
+     vertex.size=10 * sqrt(hub.score(full_no_zero)$vector)
+     )
+
+
+#Community detection (betweenness)
+full_no_zero_edge.betweenness.community <- edge.betweenness.community(full_no_zero)
+#create communities
+V(full_no_zero)$edge.betweenness.community <- membership(full_no_zero_edge.betweenness.community)
+full_no_zero_edge.betweenness.community <- membership(full_no_zero_edge.betweenness.community)
+
+
+#Community detection (Random walk)
+full_no_zero_walktrap.community <- walktrap.community(full_no_zero)
+#create 10 communities
+V(full_no_zero)$walktrap.community <- membership(full_no_zero_walktrap.community)
+full_no_zero_walktrap.community <- membership(full_no_zero_walktrap.community)
+```
+
+```{r}
+#Shortest Paths
+full_no_zero_sp_in <- shortest.paths(full_no_zero, mode='in')
+full_no_zero_sp_out <- shortest.paths(full_no_zero, mode='out')
+
+#in
+mean(full_no_zero_sp_in[which(full_no_zero_sp_in != Inf)])
+sd(full_no_zero_sp_in[which(full_no_zero_sp_in != Inf)])
+#out
+mean(full_no_zero_sp_out[which(full_no_zero_sp_out != Inf)])
+sd(full_no_zero_sp_out[which(full_no_zero_sp_out != Inf)])
+```
+
+```{r}
+#Declaring Reachability function 
+reachability <- function(g, m) {
+  reach_mat = matrix(nrow = vcount(g), ncol = vcount(g))
+  for (i in 1:vcount(g)) {
+    reach_mat[i,] = 0
+    this_node_reach <- subcomponent(g, i, mode = m) # used "i" instead of "(i - 1)"
+    
+    for (j in 1:(length(this_node_reach))){
+      alter = this_node_reach[j]# removed "+ 1"
+      reach_mat[i, alter] = 1
+      }
+    }
+  return(reach_mat)
+  }
+ 
+#Reachability
+full_no_zero_reach_in <- reachability(full_no_zero, 'in')
+full_no_zero_reach_out <- reachability(full_no_zero, 'out')
+
+#in
+mean(full_no_zero_reach_in[which(full_no_zero_reach_in != Inf)])
+sd(full_no_zero_reach_in[which(full_no_zero_reach_in != Inf)])
+#out
+mean(full_no_zero_reach_out[which(full_no_zero_reach_out != Inf)])
+sd(full_no_zero_reach_out[which(full_no_zero_reach_out != Inf)])
+```
+
+```{r}
+# Density 
+graph.density(full_no_zero)
+
+# Reciprocity Default - Proportion of mutual connections - probability that hte opposite counterpart of a directed graph is also included
+reciprocity(full_no_zero, mode="default")
+
+# Reciprocity Default - Probability  of mutual connections between a vertex pair - if we know - probability that hte opposite counterpart of a directed graph is also included in the 
+reciprocity(full_no_zero, mode="ratio")
+
+#Is connected - decides whether the graph is weakly or strongly connected.
+is.connected(full_no_zero)
+
+#Decomposed Graph 
+comps_full_no_zero <- decompose.graph(full_no_zero)
+sapply(comps_full_no_zero, diameter)
+table(sapply(comps_full_no_zero, vcount))
+
+
+# Transitivity - clustering coefficient
+transitivity(full_no_zero)
+
+## Check the transitivity of a graph (probability that the adjacent vertices of a vertex are connected)
+(transitivity_full_no_zero <- transitivity(full_no_zero, type = "localaverage",isolates = "zero"))
+
+
+#Diameter
+diameter(full_no_zero)
+get.diameter(full_no_zero)
+
+#Maximal Independence Vertex Sets
+#independence.number(full_no_zero)
+
+full_no_zero_cluster_strong <- clusters(full_no_zero, mode=c("strong"))
+## table(full_no_zero.scc$csize)
+
+#http://www.stats.ox.ac.uk/~snijders/Trans_Triads_ha.pdf página 15 - configuração das triads
+
+#Triad Census
+census_labels = c('003',
+                  '012',
+                  '102',
+                  '021D',
+                  '021U',
+                  '021C',
+                  '111D',
+                  '111U',
+                  '030T',
+                  '030C',
+                  '201',
+                  '120D',
+                  '120U',
+                  '120C',
+                  '210',
+                  '300')
+tc_full_no_zero <- triad.census(full_no_zero)
+triad_df_full_no_zero <- data.frame(census_labels,tc_full_no_zero)
+triad_df_full_no_zero
+write.csv(triad_df_full_no_zero, 'full_no_zero_complet_triads.csv')
+
+#Dyad Census (Number of pairs with mutual connections "mut" and number of pairs with non-mutual connections "asym")
+dyad.census(full_no_zero)
+
+```
+
+```{r}
+#Creating Vectors to pass means for each vertex
+
+full_no_zero_sp_in_vec <- vector()
+full_no_zero_sp_out_vec <- vector()
+full_no_zero_reach_in_vec <- vector()
+full_no_zero_reach_out_vec <- vector()
+
+#  Looping to pass mean of reachability and shortest path to each vertex
+for (i in 1:vcount(full_no_zero))
+  full_no_zero_reach_in_vec[i] <- mean(full_no_zero_reach_in[i,])
+  V(full_no_zero)$full_no_zero_reach_in_vec[i] <- mean(full_no_zero_reach_in[i,]) #adding to igraph object
+  
+  full_no_zero_reach_out_vec[i] <- mean(full_no_zero_reach_out[i,])
+  V(full_no_zero)$full_no_zero_reach_out_vec[i] <- mean(full_no_zero_reach_out[i,]) #adding to igraph object
+  
+  full_no_zero_sp_in_vec[i] <- mean(full_no_zero_sp_in[i,])
+  V(full_no_zero)$full_no_zero_sp_in_vec[i] <- mean(full_no_zero_sp_in[i,]) #adding to igraph object
+  
+  full_no_zero_sp_out_vec[i] <- mean(full_no_zero_sp_out[i,])
+  V(full_no_zero)$full_no_zero_sp_out_vec[i] <- mean(full_no_zero_sp_out[i,]) #adding to igraph object
+
+```
+
+```{r}
+full_no_zero_node_stats_df <- cbind(
+full_no_zero_indegree,
+full_no_zero_outdegree,
+full_no_zero_totaldegree,
+full_no_zero_incloseness,
+full_no_zero_outcloseness,
+full_no_zero_totalcloseness,
+full_no_zero_betweenness,
+full_no_zero_eigenvector,
+full_no_zero_reach_in_vec, 
+full_no_zero_reach_out_vec, 
+full_no_zero_sp_in_vec, 
+full_no_zero_sp_out_vec)
+
+write.csv(full_no_zero_node_stats_df, "~/SNArRDJF/Banco Redes R/Bancos CSV/full_no_zero_node_stats_df.csv")
+```
+
+```{r}
+
+#Grafo full_no_zero
+
+teste =as.numeric(get.vertex.attribute(full_no_zero,"totaldegree"))
+
+plot(full_no_zero, 
+     layout=layout.fruchterman.reingold(full_no_zero), 
+     vertex.size=(teste)/10,
+     vertex.color=get.vertex.attribute(full_no_zero,"color"), 
+     vertex.label=get.vertex.attribute(full_no_zero,"LABEL_COR"),
+     vertex.label.color ="black",
+     vertex.label.cex=(teste)/500,
+     vertex.frame.color=F,
+     edge.arrow.size=0.01,
+     rescale=TRUE,
+     edge.width=edge.betweenness(full_no_zero)/1000,
+     main="Grafo Completo")
+
+
+
+legend(1, 
+       1.25,
+       legend =levels(as.factor(get.vertex.attribute(full_no_zero,"LABEL_COR"))), 
+       col = levels(as.factor(get.vertex.attribute(full_no_zero,"color"))), 
+       lty=1,
+       cex = .3) #falta acertar cores
+
+```
+
+```{r}
+#Find connected components
+clusters(full_no_zero)
+
+## Add community indicating background colors
+  plot.igraph(full_no_zero,
+              layout = layout.kamada.kawai,
+              vertex.color = get.vertex.attribute(full_no_zero,"color"), 
+              vertex.size = log(degree(full_no_zero) + 1)*1.5,
+              mark.groups = by(seq_along(communityEdgeBetwn_full_no_zero$membership),communityEdgeBetwn_full_no_zero$membership, invisible),
+              vertex.label="",
+       edge.arrow.size=0.01,
+       edge.width=0.1
+              )
+  title("Rede Completa", 
+  sub = "Fonte: Do autor")
+  text(x = -1, y = -1.2, 
+       labels = sprintf("Average path length: %.2f\nTransitivity: %.2f",
+                        averagePathLength_full_no_zero, 
+                        transitivity_full_no_zero)
+       )
+  legend(1, 1.2,
+         legend =levels(as.factor(get.vertex.attribute(full_no_zero,"LABEL_COR"))), 
+         col = levels(as.factor(get.vertex.attribute(full_no_zero,"color"))), 
+         lty=1,
+         cex = .3
+         ) #falta acertar cores
+
+plot(full_no_zero, 
+     layout=layout.fruchterman.reingold(full_no_zero),
+     vertex.size=log(degree(full_no_zero)+1),
+     vertex.color=get.vertex.attribute(full_no_zero,"color"), #communityEdgeBetwn_full_no_zero$membership 
+     vertex.label=get.vertex.attribute(full_no_zero,"LABEL_COR"),
+     vertex.label.color ="black",
+     vertex.label.cex=(teste)/500,
+     edge.arrow.size=0.01,
+     edge.width=0.1,
+     main="Grafo Completo")
+
+legend(1, 
+       1.25,
+       legend =levels(as.factor(get.vertex.attribute(full_no_zero,"LABEL_COR"))), 
+       col = levels(as.factor(get.vertex.attribute(full_no_zero,"color"))), 
+       lty=1,
+       cex = .3) #falta acertar cores
+
+```
+
+```{r}
+#Find Cliques
+#mc <- maximal.cliques(full_no_zero)
+#length(mc)
+
+#clique size
+#sapply(mc, length)
+#col <- rep("blue", length(V(full_no_zero)))
+#plot the largest (last) click
+#col[mc[[length(mc)]]] <- "red"
+#plot(full_no_zero, layout=layout, vertex.color=col)
+
+#Total 
+#cliques<-cliques(full_no_zero)
+
+#table(sapply(cliques(full_no_zero), length))
+
+```
+

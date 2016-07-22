@@ -1,0 +1,88 @@
+---
+title: "Untitled"
+author: "Leonardo Martins"
+date: "19 de julho de 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 24. Loading objects generated with 1.Principal.Rmd Script - Please run this script only after run 1.Principal.Rmd
+```{r}
+load("~/SNArRDJF/Principal Objects.RData")
+```
+
+## 25. Reload packages
+```{r packages, message=TRUE, warning=TRUE}
+suppressMessages(require(XLConnect)) #packcage to extract xls mutiple sheets
+suppressMessages(require(readxl)) #packcage to read xls files
+suppressMessages(require(psych)) #return some descriptives stats
+suppressMessages(require(igraph)) #load package for social network analysis
+suppressMessages(require(networkD3)) #load package for sankey network
+suppressMessages(library(rgexf)) #Regular expression to deal with strings
+suppressMessages(library(reshape2)) #Used to manipulate matrix into dataframe with diferent shapes
+suppressMessages(library(igraph)) # SNA package 
+suppressMessages(library(miniCRAN))
+suppressMessages(library(magrittr))
+suppressMessages(library(keyplayer))
+suppressMessages(library(dplyr))
+suppressMessages(library(feather))
+suppressMessages(library(visNetwork))
+suppressMessages(library(knitr))
+suppressMessages(library(DT))
+suppressMessages(library(stringr))
+library(RColorBrewer)
+library(car)
+library(xtable)
+#library(gplots)
+#library(sna)
+```
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+#2.8.2 Alpha Bonacichcentrality scores of network positions
+```{r, results="asis"}
+#Saving power as an object
+alpha_centrality_stats_full_no_zero <- alpha_centrality(full_no_zero, loops = FALSE, alpha = 1, exo = 1, weights = V(full_no_zero)$full_no_zero, tol = 1e-07, sparse = TRUE)
+
+#Saving power as an igraph attributte
+V(full_no_zero)$alpha_centrality_stats_full_no_zero<-alpha_centrality(full_no_zero, loops = FALSE, alpha = 1, exo = 1, weights = V(full_no_zero)$full_no_zero, tol = 1e-07, sparse = TRUE)
+
+
+#Or are you more powerful if you're connected to weak, dependent people? (negative attenuation factor)
+i=sort(alpha_centrality_stats_full_no_zero) %>% round(3)
+table_i<-cbind(V(full_no_zero)$V5_LABEL_LABEL,i)
+toptable_i <- xtable(table_i)
+print(toptable_i , floating=FALSE, type="html")
+
+#Are you more powerful if you're connected to powerful people? (positive attenuation factor)
+d=sort(alpha_centrality_stats_full_no_zero, decreasing = T) %>% round(3)
+table_d<-cbind(V(full_no_zero)$V5_LABEL_LABEL,d)
+toptable_d <- xtable(table_d)
+print(toptable_d , floating=FALSE, type="html")
+```
+

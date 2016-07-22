@@ -1,0 +1,62 @@
+full_no_zero
+var0
+var1
+var2
+var3
+var4
+var5
+var6
+var7
+var8
+var9
+var10
+var11
+var12
+var13
+var14
+var15
+var16
+var17
+var18
+var19
+var20
+var21
+var22
+var23
+var24
+atividade
+acesso
+confianca
+acessoeconfianca
+total
+REDE COMPLETA - Sem Zeros
+RELACIONAMENTO FORMAL
+REFERENCIA DE ENVIO
+REFERENCIA DE RECEBIMENTO CONTRAREFERENCIA
+COORDENAÇÃO CONJUNTA DE CASOS
+PROGRAMAS EM CONJUNTO
+OFERTA DE TREINAMENTOS/CAPACITAÇÕES
+RECEBER TREINAMENTOS/CAPACITAÇÕES
+ACESSO A) Este serviço mostra-se disponível para realização de ativades em conjunto.
+ACESSO B) O horário de funcionamento deste serviço possibilita a realização de ações em conjunto.
+ACESSO C) Este serviço disponibiliza informações sobre suas ativades para o seu serviço.
+ACESSO D) O seu serviço consegue acessar facilmente informações deste serviço.
+ACESSO E) Os canais de comunicação com este serviço são suficientes para realização de ações em conjunto.
+ACESSO F) Seu serviço tem facilade de entrar em contato com este serviço para realizar ativades em conjunto.
+ACESSO G) O acesso geográfico a este serviço impede a realização de ativades em conjunto.  
+ACESSO H) O custo para acessar este serviço impede a realização de ativades em conjunto.
+ACESSO I) O tempo gasto para acessar este serviço impede a realização ativades em conjunto.
+CONFIANÇA A) Confia  na qualificação profissional da equipe deste serviço 
+CONFIANÇA B) Confia  na capacade técnica da equipe deste serviço.
+CONFIANÇA C) Confia  nas ações realizadas por este serviço.
+CONFIANÇA D) Confia  em compartilhar informações internas com este serviço. 
+CONFIANÇA E) Confia nas informações recebas deste serviço.
+CONFIANÇA F) Confia  em realizar ações conjuntas com este serviço.
+CONFIANÇA G) Está satisfeito  com as ações desempenhadas por este serviço.
+CONFIANÇA H) Espera que o relacionamento com este serviço continue nos próximos anos.
+CONFIANÇA I) Espera que o relacionamento com este serviço se fortaleça nos próximos anos.
+ATIVIDADE
+ACESSO
+CONFIANÇA
+ACESSO E CONFIANÇA
+TOTAL
