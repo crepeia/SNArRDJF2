@@ -11,6 +11,8 @@ output:
 
 # Pricipal Script - Generating all basic objects, igraph objects and attributtes - It is running only as srcipt not rendering in markdown (yet)
 
+#Before run the complete script clean your Rhistory file
+
 ## 1. Calling Packages
 ```{r packages, message=TRUE, warning=TRUE}
 setwd('~/SNArRDJF/Banco Redes R')
@@ -187,6 +189,26 @@ Matriz_23.csv<-importa_matrix("Matriz 23.csv")
 #CONFIANÇA	I) Seu serviço espera que o relacionamento com este 
 Matriz_24.csv<-importa_matrix("Matriz 24.csv")
 
+#SOMATÓRIO ATIVIDADE
+Matriz_atividade.csv= as.matrix(`Matriz_1.csv` + `Matriz_2.csv` + `Matriz_3.csv` + `Matriz_4.csv`+ `Matriz_5.csv`+ `Matriz_6.csv`)
+
+#SOMATÓRIO ACESSO
+Matriz_acesso.csv= as.matrix(`Matriz_7.csv` + `Matriz_8.csv` + `Matriz_9.csv` + `Matriz_10.csv`+ `Matriz_11.csv`+ `Matriz_12.csv` + `Matriz_13.csv` + `Matriz_14.csv` + `Matriz_15.csv` + `Matriz_16.csv`)
+
+#SOMATÓRIO ACESSO POSITIVO - HORÁRIOS, INFORMAÇÕES E COMUNICAÇÃO 
+Matriz_acesso_positivo.csv= as.matrix(`Matriz_7.csv` + `Matriz_8.csv` + `Matriz_9.csv` + `Matriz_10.csv`+ `Matriz_11.csv`+ `Matriz_12.csv` + `Matriz_13.csv`)
+
+#SOMATÓRIO ACESSO NEGATIVO - BARREIRAS GEOGRÁFICAS, TEMPO E CUSTO
+Matriz_acesso_negativo.csv= as.matrix(`Matriz_14.csv` + `Matriz_15.csv` + `Matriz_16.csv`)
+
+#SOMATÓRIO CONFIANÇA
+Matriz_confianca.csv= as.matrix(`Matriz_17.csv` + `Matriz_18.csv` + `Matriz_19.csv` + `Matriz_20.csv`+ `Matriz_21.csv`+ `Matriz_22.csv` + `Matriz_23.csv`+ `Matriz_24.csv`)
+
+#SOMATÓRIO ACESSO E CONFIANÇA
+Matriz_acessoeconfianca.csv=as.matrix(`Matriz_acesso.csv`+`Matriz_confianca.csv`)
+
+#SOMATÓRIO TOTAL
+Matriz_total.csv= as.matrix(`Matriz_atividade.csv` + `Matriz_acesso.csv` + `Matriz_confianca.csv`)
 ```
 
 #8. Importing Attributes for vertices
@@ -224,6 +246,14 @@ gMatriz_21.csv<-graph_from_adjacency_matrix(Matriz_21.csv, mode="directed",weigh
 gMatriz_22.csv<-graph_from_adjacency_matrix(Matriz_22.csv, mode="directed",weighted=T,diag=F)
 gMatriz_23.csv<-graph_from_adjacency_matrix(Matriz_23.csv, mode="directed",weighted=T,diag=F)
 gMatriz_24.csv<-graph_from_adjacency_matrix(Matriz_24.csv, mode="directed",weighted=T,diag=F)
+gMatriz_atividade.csv<-graph_from_adjacency_matrix(Matriz_atividade.csv, mode="directed",weighted=T,diag=F)
+gMatriz_acesso.csv<-graph_from_adjacency_matrix(Matriz_acesso.csv, mode="directed",weighted=T,diag=F)
+gMatriz_acesso_positivo.csv<-graph_from_adjacency_matrix(Matriz_acesso_positivo.csv, mode="directed",weighted=T,diag=F)
+gMatriz_acesso_negativo.csv<-graph_from_adjacency_matrix(Matriz_acesso_negativo.csv, mode="directed",weighted=T,diag=F)
+gMatriz_confianca.csv<-graph_from_adjacency_matrix(Matriz_confianca.csv, mode="directed",weighted=T,diag=F)
+gMatriz_acessoeconfianca.csv<-graph_from_adjacency_matrix(Matriz_acessoeconfianca.csv, mode="directed",weighted=T,diag=F)
+gMatriz_total.csv<-graph_from_adjacency_matrix(Matriz_total.csv, mode="directed",weighted=T,diag=F)
+
 ```
 
 #10. Melting Squared Matrix to List in order to agreggate all lists in one dataframe
@@ -254,11 +284,13 @@ gMatriz_21.txt<-melt(Matriz_21.csv)
 gMatriz_22.txt<-melt(Matriz_22.csv)
 gMatriz_23.txt<-melt(Matriz_23.csv)
 gMatriz_24.txt<-melt(Matriz_24.csv)
-gMatriz_atividade.txt<-melt(atividade)
-gMatriz_acesso.txt<-melt(acesso)
-gMatriz_confianca.txt<-melt(confianca)
-gMatriz_acessoeconfianca.txt<-melt(acessoeconfianca)
-gMatriz_total.txt<-melt(total)
+gMatriz_atividade.txt<-melt(Matriz_atividade.csv)
+gMatriz_acesso.txt<-melt(Matriz_acesso.csv)
+gMatriz_acesso_positivo.txt<-melt(Matriz_acesso_positivo.csv)
+gMatriz_acesso_negativo.txt<-melt(Matriz_acesso_negativo.csv)
+gMatriz_confianca.txt<-melt(Matriz_confianca.csv)
+gMatriz_acessoeconfianca.txt<-melt(Matriz_acessoeconfianca.csv)
+gMatriz_total.txt<-melt(Matriz_total.csv)
 ```
 
 #11. Adding colnames
@@ -291,6 +323,8 @@ colnames(gMatriz_23.txt)<-c('from','to','var23')
 colnames(gMatriz_24.txt)<-c('from','to','var24')
 colnames(gMatriz_atividade.txt)<-c('from','to','atividade')
 colnames(gMatriz_acesso.txt)<-c('from','to','acesso')
+colnames(gMatriz_acesso_positivo.txt)<-c('from','to','acesso_positivo')
+colnames(gMatriz_acesso_negativo.txt)<-c('from','to','acesso_negativo')
 colnames(gMatriz_confianca.txt)<-c('from','to','confianca')
 colnames(gMatriz_acessoeconfianca.txt)<-c('from','to','acessoeconfianca')
 colnames(gMatriz_total.txt)<-c('from','to','total')
@@ -298,7 +332,8 @@ colnames(gMatriz_total.txt)<-c('from','to','total')
 
 #12. All matrixes in one dataframe
 ```{r, message=FALSE, warning=FALSE, include=FALSE}       
-full_data_frame <- cbind(gMatriz_0.txt,
+full_data_frame <- cbind(gMatriz_x2.txt,
+gMatriz_0.txt$var0,
 gMatriz_1.txt$var1,
 gMatriz_2.txt$var2,
 gMatriz_3.txt$var3,
@@ -325,15 +360,19 @@ gMatriz_23.txt$var23,
 gMatriz_24.txt$var24,
 gMatriz_atividade.txt$atividade,
 gMatriz_acesso.txt$acesso,
+gMatriz_acesso_positivo.txt$acesso_positivo,
+gMatriz_acesso_negativo.txt$acesso_negativo,
 gMatriz_confianca.txt$confianca,
 gMatriz_acessoeconfianca.txt$acessoeconfianca,
 gMatriz_total.txt$total)
 head(full_data_frame)
+tail(full_data_frame)
 ```
 
 #13. Renaming 
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
-names(full_data_frame)[4:32] <- c(
+names(full_data_frame)[4:35] <- c(
+"var0",
 "var1",
 "var2",
 "var3",
@@ -357,7 +396,14 @@ names(full_data_frame)[4:32] <- c(
 "var21",
 "var22",
 "var23",
-"var24")
+"var24",
+"atividade",
+"acesso",
+"acesso_positivo",
+"acesso_negativo",
+"confianca",
+"acessoeconfianca",
+"total")
 names(full_data_frame)
 ```
 
@@ -412,11 +458,13 @@ full_data_frame_id$var21[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
 full_data_frame_id$var22[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
 full_data_frame_id$var23[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
 full_data_frame_id$var24[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
-#full_data_frame_id$atividade[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
-#full_data_frame_id$acesso[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
-#full_data_frame_id$confianca[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
-#full_data_frame_id$acessoeconfianca[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
-#full_data_frame_id$total[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
+full_data_frame_id$atividade[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
+full_data_frame_id$acesso[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
+full_data_frame_id$acesso_positivo[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
+full_data_frame_id$acesso_negativo[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
+full_data_frame_id$confianca[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
+full_data_frame_id$acessoeconfianca[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
+full_data_frame_id$total[(full_data_frame_id$from==full_data_frame_id$to)!=0]<-0
 
 #Writing CSV code without diags
 write.csv2(full_data_frame_id, "~/SNArRDJF/Banco Redes R/Bancos CSV/full_data_frame_id.csv", fileEncoding = "macintosh")
@@ -424,6 +472,16 @@ write.csv2(full_data_frame_id, "~/SNArRDJF/Banco Redes R/Bancos CSV/full_data_fr
 
 #Recoding weights from edges - considering (Previous Ausent Observation=0; Discordo=-1; Neutro=0; Concordo=1) - It's very important not use this weights to filter new subset graphs as 0 is used to consider absent relationship in this code
 ```{r}
+#Keeping edge pattern
+full_data_frame_id$neg_x2<-full_data_frame_id$x2
+full_data_frame_id$neg_var0<-full_data_frame_id$var0
+full_data_frame_id$neg_var1<-full_data_frame_id$var1
+full_data_frame_id$neg_var2<-full_data_frame_id$var2
+full_data_frame_id$neg_var3<-full_data_frame_id$var3
+full_data_frame_id$neg_var4<-full_data_frame_id$var4
+full_data_frame_id$neg_var5<-full_data_frame_id$var5
+full_data_frame_id$neg_var6<-full_data_frame_id$var6
+
 #Acess - Positive Items
 full_data_frame_id$neg_var7<-recode(as.numeric(full_data_frame_id$var7),"0=0;1=-1;2=0;3=1")
 full_data_frame_id$neg_var8<-recode(full_data_frame_id$var8,"0=0;1=-1;2=0;3=1")
@@ -452,42 +510,26 @@ head(full_data_frame_id)
 
 #Weighted scores generated by item sum 
 ```{r}
-
 #SOMATÓRIO ATIVIDADE
-full_data_frame_id$atividade_n=(full_data_frame_id$neg_var1 + full_data_frame_id$neg_var2 + full_data_frame_id$neg_var3 + full_data_frame_id$neg_var4 + full_data_frame_id$neg_var5 + full_data_frame_id$neg_var6)
-
-full_data_frame_id$atividade=(full_data_frame_id$neg_var1 + full_data_frame_id$neg_var2 + full_data_frame_id$neg_var3 + full_data_frame_id$neg_var4 + full_data_frame_id$neg_var5 + full_data_frame_id$neg_var6)
+full_data_frame_id$neg_atividade=(full_data_frame_id$neg_var1 + full_data_frame_id$neg_var2 + full_data_frame_id$neg_var3 + full_data_frame_id$neg_var4 + full_data_frame_id$neg_var5 + full_data_frame_id$neg_var6)
 
 #SOMATÓRIO ACESSO TOTAL
-full_data_frame_id$acesso=(full_data_frame_id$neg_var7 + full_data_frame_id$neg_var8 + full_data_frame_id$neg_var9 + full_data_frame_id$neg_var10 + full_data_frame_id$neg_var11 + full_data_frame_id$neg_var12 + full_data_frame_id$neg_var13 + full_data_frame_id$neg_var14 + full_data_frame_id$neg_var15)
+full_data_frame_id$neg_acesso=(full_data_frame_id$neg_var7 + full_data_frame_id$neg_var8 + full_data_frame_id$neg_var9 + full_data_frame_id$neg_var10 + full_data_frame_id$neg_var11 + full_data_frame_id$neg_var12 + full_data_frame_id$neg_var13 + full_data_frame_id$neg_var14 + full_data_frame_id$neg_var15)
 
 #SOMATÓRIO ACESSO POSITIVO - HORÁRIOS, INFORMAÇÕES E COMUNICAÇÃO 
-full_data_frame_id$acesso_positivo=(full_data_frame_id$neg_var7 + full_data_frame_id$neg_var8 + full_data_frame_id$neg_var9 + full_data_frame_id$neg_var10 + full_data_frame_id$var11 + full_data_frame_id$neg_var12 + full_data_frame_id$neg_var13)
+full_data_frame_id$neg_acesso_positivo=(full_data_frame_id$neg_var7 + full_data_frame_id$neg_var8 + full_data_frame_id$neg_var9 + full_data_frame_id$neg_var10 + full_data_frame_id$var11 + full_data_frame_id$neg_var12 + full_data_frame_id$neg_var13)
 
 #SOMATÓRIO ACESSO NEGATIVO - BARREIRAS GEOGRÁFICAS, TEMPO E CUSTO
-full_data_frame_id$acesso_negativo=(full_data_frame_id$var14 + full_data_frame_id$var15 + full_data_frame_id$var16)
+full_data_frame_id$neg_acesso_negativo=(full_data_frame_id$var14 + full_data_frame_id$var15 + full_data_frame_id$var16)
 
 #SOMATÓRIO CONFIANÇA
-full_data_frame_id$confianca=(full_data_frame_id$neg_var17 + full_data_frame_id$neg_var18 + full_data_frame_id$neg_var19 + full_data_frame_id$neg_var20 + full_data_frame_id$neg_var21 + full_data_frame_id$neg_var22 + full_data_frame_id$neg_var23 + full_data_frame_id$neg_var24)
+full_data_frame_id$neg_confianca=(full_data_frame_id$neg_var17 + full_data_frame_id$neg_var18 + full_data_frame_id$neg_var19 + full_data_frame_id$neg_var20 + full_data_frame_id$neg_var21 + full_data_frame_id$neg_var22 + full_data_frame_id$neg_var23 + full_data_frame_id$neg_var24)
 
 #SOMATÓRIO ACESSO E CONFIANÇA
-full_data_frame_id$acessoeconfianca=full_data_frame_id$acesso + full_data_frame_id$confianca
+full_data_frame_id$neg_acessoeconfianca=(full_data_frame_id$neg_acesso + full_data_frame_id$neg_confianca)
 
 #SOMATÓRIO TOTAL
-full_data_frame_id$total= full_data_frame_id$acessoeconfianca + full_data_frame_id$acessoeconfianca
-
-#SOMATÓRIO ACESSO PONDERADO
-full_data_frame_id$neg_acesso= rowSums(full_data_frame_id[,c(32:42)]) 
-
-#SOMATÓRIO CONFIANÇA PONDERADO
-full_data_frame_id$neg_confianca= rowSums(full_data_frame_id[,c(43:49)]) 
-
-#SOMATÓRIO CONFIANÇA E ACESSO PONDERADO
-full_data_frame_id$neg_acessoeconfianca= full_data_frame_id$neg_confianca + full_data_frame_id$neg_acesso
-
-#SOMATÓRIO TOTAL PONDERADO
-full_data_frame_id$neg_total= full_data_frame_id$atividade + full_data_frame_id$neg_acessoeconfianca 
-
+full_data_frame_id$neg_total=(full_data_frame_id$neg_atividade + full_data_frame_id$neg_acessoeconfianca)
 head(full_data_frame_id)
 ```
 
@@ -502,7 +544,7 @@ V(full_with_zero)$name<-as.numeric(V(full_with_zero)$name)
 summary(full_with_zero)
 ```
 
-#15. Adding attributes to each node (full_with_zero) - ***We need to update this code with "for" and after Pedro's updates regarding KML mercartor coordinates***
+#15. Adding attributes to each node (full_with_zero) - ***We need to update this code with "for" and after Pedro's updates regarding KML mercartor coordinates*** - Here we have only 15 different atributtes as an example
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
 # Adding attributes to each node (full_with_zero) - Update this code with "for" and after Pedro's updates regarding KML mercartor coordinates 
 
@@ -530,256 +572,6 @@ V(full_with_zero)$V5_LABEL_TIPO=as.character(attributes.csv$V5_LABEL_TIPO[match(
 
 V(full_with_zero)$V5_LABEL_TIPO_NOME=as.character(attributes.csv$V5_LABEL_TIPO_NOME[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
 
-V(full_with_zero)$V6_COMUNICACAO_Dispõe.de.meios.de.comunicação=as.character(attributes.csv$V6_COMUNICACAO_Dispõe.de.meios.de.comunicação[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V7_COMUNICACAO_Telefeno.Fixo=as.character(attributes.csv$V7_COMUNICACAO_Telefeno.Fixo[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V8_COMUNICACAO_Celular.Chamada.de.Voz=as.character(attributes.csv$V8_COMUNICACAO_Celular.Chamada.de.Voz[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V9_COMUNICACAO_Celular.Mensagem.de.Texto=as.character(attributes.csv$V9_COMUNICACAO_Celular.Mensagem.de.Texto[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V10_COMUNICACAO_E.mail=as.character(attributes.csv$V10_COMUNICACAO_E.mail[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V11_COMUNICACAO_Skype.Menssager=as.character(attributes.csv$V11_COMUNICACAO_Skype.Menssager[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V12_COMUNICACAO_Converso.Pessalmente=as.character(attributes.csv$V12_COMUNICACAO_Converso.Pessalmente[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V13_COMUNICACAO_Comunicação.Institucional..Ofício..Memorando.=as.character(attributes.csv$V13_COMUNICACAO_Comunicação.Institucional..Ofício..Memorando.[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V14_COMUNICACAO_Outro=as.character(attributes.csv$V14_COMUNICACAO_Outro[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V15_COMUNICACAO_FACEBOOK.REDES.SOCAIS=as.character(attributes.csv$V15_COMUNICACAO_FACEBOOK.REDES.SOCAIS[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V16_TEMPO_FUNC_Data_Abertura=as.character(attributes.csv$V16_TEMPO_FUNC_Data_Abertura[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V17_TEMPO_FUNC_Data_Pesquisa=as.character(attributes.csv$V17_TEMPO_FUNC_Data_Pesquisa[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V18_TEMPO_FUNC_Idade_Serviço_Dias=as.character(attributes.csv$V18_TEMPO_FUNC_Idade_Serviço_Dias[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V19_TEMPO_FUNC_Idade_em_anos=as.character(attributes.csv$V19_TEMPO_FUNC_Idade_em_anos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V20_FUNCIONAMENTO_Segunda=as.character(attributes.csv$V20_FUNCIONAMENTO_Segunda[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V21_FUNCIONAMENTO_Terça=as.character(attributes.csv$V21_FUNCIONAMENTO_Terça[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V22_FUNCIONAMENTO_Quarta=as.character(attributes.csv$V22_FUNCIONAMENTO_Quarta[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V23_FUNCIONAMENTO_Quinta=as.character(attributes.csv$V23_FUNCIONAMENTO_Quinta[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V24_FUNCIONAMENTO_Sexta=as.character(attributes.csv$V24_FUNCIONAMENTO_Sexta[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V25_FUNCIONAMENTO_Sábado=as.character(attributes.csv$V25_FUNCIONAMENTO_Sábado[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V26_FUNCIONAMENTO_Domingo=as.character(attributes.csv$V26_FUNCIONAMENTO_Domingo[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V27_FUNCIONAMENTO_Feriados=as.character(attributes.csv$V27_FUNCIONAMENTO_Feriados[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V28_FUNCIONAMENTO_Segunda....Manhã=as.character(attributes.csv$V28_FUNCIONAMENTO_Segunda....Manhã[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V29_FUNCIONAMENTO_Segunda....Tarde=as.character(attributes.csv$V29_FUNCIONAMENTO_Segunda....Tarde[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V30_FUNCIONAMENTO_Segunda....Noite=as.character(attributes.csv$V30_FUNCIONAMENTO_Segunda....Noite[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V31_FUNCIONAMENTO_Segunda....Plantão.24h=as.character(attributes.csv$V31_FUNCIONAMENTO_Segunda....Plantão.24h[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V32_FUNCIONAMENTO_Terça....Manhã=as.character(attributes.csv$V32_FUNCIONAMENTO_Terça....Manhã[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V33_FUNCIONAMENTO_Terça....Tarde=as.character(attributes.csv$V33_FUNCIONAMENTO_Terça....Tarde[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V34_FUNCIONAMENTO_Terça....Noite=as.character(attributes.csv$V34_FUNCIONAMENTO_Terça....Noite[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V35_FUNCIONAMENTO_Terça....Plantão.24h=as.character(attributes.csv$V35_FUNCIONAMENTO_Terça....Plantão.24h[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V36_FUNCIONAMENTO_Quarta....Manhã=as.character(attributes.csv$V36_FUNCIONAMENTO_Quarta....Manhã[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V37_FUNCIONAMENTO_Quarta....Tarde=as.character(attributes.csv$V37_FUNCIONAMENTO_Quarta....Tarde[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V38_FUNCIONAMENTO_Quarta....Noite=as.character(attributes.csv$V38_FUNCIONAMENTO_Quarta....Noite[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V39_FUNCIONAMENTO_Quarta....Plantão.24h=as.character(attributes.csv$V39_FUNCIONAMENTO_Quarta....Plantão.24h[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V40_FUNCIONAMENTO_Quinta....Manhã=as.character(attributes.csv$V40_FUNCIONAMENTO_Quinta....Manhã[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V41_FUNCIONAMENTO_Quinta....Tarde=as.character(attributes.csv$V41_FUNCIONAMENTO_Quinta....Tarde[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V42_FUNCIONAMENTO_Quinta....Noite=as.character(attributes.csv$V42_FUNCIONAMENTO_Quinta....Noite[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V43_FUNCIONAMENTO_Quinta....Plantão.24h=as.character(attributes.csv$V43_FUNCIONAMENTO_Quinta....Plantão.24h[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V44_FUNCIONAMENTO_Sexta....Manhã=as.character(attributes.csv$V44_FUNCIONAMENTO_Sexta....Manhã[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V45_FUNCIONAMENTO_Sexta....Tarde=as.character(attributes.csv$V45_FUNCIONAMENTO_Sexta....Tarde[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V46_FUNCIONAMENTO_Sexta....Noite=as.character(attributes.csv$V46_FUNCIONAMENTO_Sexta....Noite[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V47_FUNCIONAMENTO_Sexta....Plantão.24h=as.character(attributes.csv$V47_FUNCIONAMENTO_Sexta....Plantão.24h[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V48_FUNCIONAMENTO_Sábado....Manhã=as.character(attributes.csv$V48_FUNCIONAMENTO_Sábado....Manhã[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V49_FUNCIONAMENTO_Sábado....Tarde=as.character(attributes.csv$V49_FUNCIONAMENTO_Sábado....Tarde[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V50_FUNCIONAMENTO_Sábado....Noite=as.character(attributes.csv$V50_FUNCIONAMENTO_Sábado....Noite[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V51_FUNCIONAMENTO_Sábado....Plantão.24h=as.character(attributes.csv$V51_FUNCIONAMENTO_Sábado....Plantão.24h[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V52_FUNCIONAMENTO_Domingo....Manhã=as.character(attributes.csv$V52_FUNCIONAMENTO_Domingo....Manhã[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V53_FUNCIONAMENTO_Domingo....Tarde=as.character(attributes.csv$V53_FUNCIONAMENTO_Domingo....Tarde[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V54_FUNCIONAMENTO_Domingo....Noite=as.character(attributes.csv$V54_FUNCIONAMENTO_Domingo....Noite[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V55_FUNCIONAMENTO_Domingo....Plantão.24h=as.character(attributes.csv$V55_FUNCIONAMENTO_Domingo....Plantão.24h[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V56_FUNCIONAMENTO_Feriado....Manhã=as.character(attributes.csv$V56_FUNCIONAMENTO_Feriado....Manhã[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V57_FUNCIONAMENTO_Feriado....Tarde=as.character(attributes.csv$V57_FUNCIONAMENTO_Feriado....Tarde[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V58_FUNCIONAMENTO_Feriado....Noite=as.character(attributes.csv$V58_FUNCIONAMENTO_Feriado....Noite[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V59_FUNCIONAMENTO_Feriado....Plantão.24h=as.character(attributes.csv$V59_FUNCIONAMENTO_Feriado....Plantão.24h[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V60_PROFISSIONAIS_Agentes.Comunitários.de.Saúde=as.character(attributes.csv$V60_PROFISSIONAIS_Agentes.Comunitários.de.Saúde[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V61_PROFISSIONAIS_Assistentes.Sociais=as.character(attributes.csv$V61_PROFISSIONAIS_Assistentes.Sociais[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V62_PROFISSIONAIS_Auxiliares.de.Enfermagem=as.character(attributes.csv$V62_PROFISSIONAIS_Auxiliares.de.Enfermagem[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V63_PROFISSIONAIS_Enfermeiros=as.character(attributes.csv$V63_PROFISSIONAIS_Enfermeiros[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V64_PROFISSIONAIS_Auxiliares.de.Consultório.Bucal=as.character(attributes.csv$V64_PROFISSIONAIS_Auxiliares.de.Consultório.Bucal[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V65_PROFISSIONAIS_Médicos=as.character(attributes.csv$V65_PROFISSIONAIS_Médicos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V66_PROFISSIONAIS_Psicólogos=as.character(attributes.csv$V66_PROFISSIONAIS_Psicólogos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V67_PROFISSIONAIS_Fisioterapeutas=as.character(attributes.csv$V67_PROFISSIONAIS_Fisioterapeutas[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V68_PROFISSIONAIS_Terapeutas.Ocupacionais=as.character(attributes.csv$V68_PROFISSIONAIS_Terapeutas.Ocupacionais[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V69_PROFISSIONAIS_Dentistas=as.character(attributes.csv$V69_PROFISSIONAIS_Dentistas[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V70_PROFISSIONAIS_Farmacêuticos=as.character(attributes.csv$V70_PROFISSIONAIS_Farmacêuticos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V71_PROFISSIONAIS_Administradores=as.character(attributes.csv$V71_PROFISSIONAIS_Administradores[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V72_PROFISSIONAIS_Agentes.de.segurança..guardas..rondas.vigilantes.=as.character(attributes.csv$V72_PROFISSIONAIS_Agentes.de.segurança..guardas..rondas.vigilantes.[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V73_PROFISSIONAIS_Educadores.Físicos=as.character(attributes.csv$V73_PROFISSIONAIS_Educadores.Físicos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V74_PROFISSIONAIS_Assistentes.de.Recursos.Comunitários=as.character(attributes.csv$V74_PROFISSIONAIS_Assistentes.de.Recursos.Comunitários[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V75_PROFISSIONAIS_Auxiliares.de.almoxarifado=as.character(attributes.csv$V75_PROFISSIONAIS_Auxiliares.de.almoxarifado[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V76_PROFISSIONAIS_Educadores.Sociais=as.character(attributes.csv$V76_PROFISSIONAIS_Educadores.Sociais[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V77_PROFISSIONAIS_Pedagogos=as.character(attributes.csv$V77_PROFISSIONAIS_Pedagogos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V78_PROFISSIONAIS_Auxiliares.administrativos=as.character(attributes.csv$V78_PROFISSIONAIS_Auxiliares.administrativos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V79_PROFISSIONAIS_Recepcionistas=as.character(attributes.csv$V79_PROFISSIONAIS_Recepcionistas[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V80_PROFISSIONAIS_Serviços.gerais=as.character(attributes.csv$V80_PROFISSIONAIS_Serviços.gerais[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V81_PROFISSIONAIS_Cozinheiros=as.character(attributes.csv$V81_PROFISSIONAIS_Cozinheiros[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V82_PROFISSIONAIS_Motoristas=as.character(attributes.csv$V82_PROFISSIONAIS_Motoristas[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V83_PROFISSIONAIS_Porteiros=as.character(attributes.csv$V83_PROFISSIONAIS_Porteiros[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V84_PROFISSIONAIS_Outros=as.character(attributes.csv$V84_PROFISSIONAIS_Outros[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V85_PROFISSIONAIS_TOTAL_Profissionais=as.character(attributes.csv$V85_PROFISSIONAIS_TOTAL_Profissionais[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V86_PROFISSIONAIS_X1...Agentes.Comunitários.de.Saúde=as.character(attributes.csv$V86_PROFISSIONAIS_X1...Agentes.Comunitários.de.Saúde[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V87_PROFISSIONAIS_X2...Assistentes.Sociais=as.character(attributes.csv$V87_PROFISSIONAIS_X2...Assistentes.Sociais[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V88_PROFISSIONAIS_X3...Auxiliares.de.Enfermagem=as.character(attributes.csv$V88_PROFISSIONAIS_X3...Auxiliares.de.Enfermagem[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V89_PROFISSIONAIS_X4...Enfermeiros=as.character(attributes.csv$V89_PROFISSIONAIS_X4...Enfermeiros[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V90_PROFISSIONAIS_X5...Auxiliares.de.Consultório.Bucal=as.character(attributes.csv$V90_PROFISSIONAIS_X5...Auxiliares.de.Consultório.Bucal[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V91_PROFISSIONAIS_X6...Médicos=as.character(attributes.csv$V91_PROFISSIONAIS_X6...Médicos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V92_PROFISSIONAIS_X7...Psicólogos=as.character(attributes.csv$V92_PROFISSIONAIS_X7...Psicólogos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V93_PROFISSIONAIS_X8...Fisioterapeutas=as.character(attributes.csv$V93_PROFISSIONAIS_X8...Fisioterapeutas[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V94_PROFISSIONAIS_X9...Terapeutas.Ocupacionais=as.character(attributes.csv$V94_PROFISSIONAIS_X9...Terapeutas.Ocupacionais[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V95_PROFISSIONAIS_X10...Dentistas=as.character(attributes.csv$V95_PROFISSIONAIS_X10...Dentistas[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V96_PROFISSIONAIS_X11...Farmacêuticos=as.character(attributes.csv$V96_PROFISSIONAIS_X11...Farmacêuticos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V97_PROFISSIONAIS_X12...Administradores=as.character(attributes.csv$V97_PROFISSIONAIS_X12...Administradores[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V98_PROFISSIONAIS_X13...Agentes.de.segurança..guardas..rondas.vigilantes.=as.character(attributes.csv$V98_PROFISSIONAIS_X13...Agentes.de.segurança..guardas..rondas.vigilantes.[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V99_PROFISSIONAIS_X14...Educadores.Físicos=as.character(attributes.csv$V99_PROFISSIONAIS_X14...Educadores.Físicos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V100_PROFISSIONAIS_X15...Assistentes.de.Recursos.Comunitários=as.character(attributes.csv$V100_PROFISSIONAIS_X15...Assistentes.de.Recursos.Comunitários[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V101_PROFISSIONAIS_X16...Auxiliares.de.almoxarifado=as.character(attributes.csv$V101_PROFISSIONAIS_X16...Auxiliares.de.almoxarifado[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V102_PROFISSIONAIS_X17...Educadores.Sociais=as.character(attributes.csv$V102_PROFISSIONAIS_X17...Educadores.Sociais[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V103_PROFISSIONAIS_X18...Pedagogos=as.character(attributes.csv$V103_PROFISSIONAIS_X18...Pedagogos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V104_PROFISSIONAIS_X19...Auxiliares.administrativos=as.character(attributes.csv$V104_PROFISSIONAIS_X19...Auxiliares.administrativos[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V105_PROFISSIONAIS_X20...Recepcionistas=as.character(attributes.csv$V105_PROFISSIONAIS_X20...Recepcionistas[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V106_PROFISSIONAIS_X21...Serviços.gerais=as.character(attributes.csv$V106_PROFISSIONAIS_X21...Serviços.gerais[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V107_PROFISSIONAIS_X22...Cozinheiros=as.character(attributes.csv$V107_PROFISSIONAIS_X22...Cozinheiros[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V108_PROFISSIONAIS_X23...Motoristas=as.character(attributes.csv$V108_PROFISSIONAIS_X23...Motoristas[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V109_PROFISSIONAIS_X24...Porteiros=as.character(attributes.csv$V109_PROFISSIONAIS_X24...Porteiros[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V110_PACIENTES_Média.atende.dia.típico.=as.character(attributes.csv$V110_PACIENTES_Média.atende.dia.típico.[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V111_PACIENTES_Média.capacidade.de.atender.=as.character(attributes.csv$V111_PACIENTES_Média.capacidade.de.atender.[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V112_PACIENTES_Porcentagem.tem.problemas.com.drogas..=as.character(attributes.csv$V112_PACIENTES_Porcentagem.tem.problemas.com.drogas..[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V113_PACIENTES_Porcentagem.tem.outros.problemas.de.saúde.mental..=as.character(attributes.csv$V113_PACIENTES_Porcentagem.tem.outros.problemas.de.saúde.mental..[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V114_RELACOES_UAPS.RURAL=as.character(attributes.csv$V114_RELACOES_UAPS.RURAL[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V115_RELACOES_UAPS.URBANA=as.character(attributes.csv$V115_RELACOES_UAPS.URBANA[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V116_RELACOES_Ajuda.Mútua=as.character(attributes.csv$V116_RELACOES_Ajuda.Mútua[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V117_RELACOES_Entidades.Assistênciais.e.Dependencia.Química.e.CT=as.character(attributes.csv$V117_RELACOES_Entidades.Assistênciais.e.Dependencia.Química.e.CT[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V118_RELACOES_Residência.Terapeutica=as.character(attributes.csv$V118_RELACOES_Residência.Terapeutica[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V119_RELACOES_Entidades.Socioassistenciais=as.character(attributes.csv$V119_RELACOES_Entidades.Socioassistenciais[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V120_RELACOES_Assistência.Hospitalar=as.character(attributes.csv$V120_RELACOES_Assistência.Hospitalar[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V121_RELACOES_CAPS=as.character(attributes.csv$V121_RELACOES_CAPS[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V122_RELACOES_CRAS=as.character(attributes.csv$V122_RELACOES_CRAS[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V123_RELACOES_CREAS=as.character(attributes.csv$V123_RELACOES_CREAS[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V124_RELACOES_Acolhimento.Institucional=as.character(attributes.csv$V124_RELACOES_Acolhimento.Institucional[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V125_RELACOES_Urgência.Emergência=as.character(attributes.csv$V125_RELACOES_Urgência.Emergência[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V126_RELACOES_Ambulatório.de.Saúde.Mental=as.character(attributes.csv$V126_RELACOES_Ambulatório.de.Saúde.Mental[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V127_RELACOES_Centro.de.Convivência=as.character(attributes.csv$V127_RELACOES_Centro.de.Convivência[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V128_RELACOES_Consultório.na.Rua=as.character(attributes.csv$V128_RELACOES_Consultório.na.Rua[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V129_RELACOES_OUTRO.SERVIÇO.NAO.LISTADO=as.character(attributes.csv$V129_RELACOES_OUTRO.SERVIÇO.NAO.LISTADO[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
-V(full_with_zero)$V130_RELACOES_NÚMERO.SERVIÇOS.NÃO.LISTADOS=as.character(attributes.csv$V130_RELACOES_NÚMERO.SERVIÇOS.NÃO.LISTADOS[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
-
 V(full_with_zero)$V131_GEO_kml_latitude=as.character(attributes.csv$V131_GEO_kml_latitude[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
 
 V(full_with_zero)$V132_GEO_kml_longitude=as.character(attributes.csv$V132_GEO_kml_longitude[match(V(full_with_zero)$name, attributes.csv$V3_LABEL_ID2)])
@@ -789,9 +581,6 @@ V(full_with_zero)$V132_GEO_kml_longitude=as.character(attributes.csv$V132_GEO_km
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
 # Creating brewer pallette
 vertex_col <- colorRampPalette(brewer.pal(length(unique(V(full_with_zero)$LABEL_COR)), "Paired"))(length(unique(V(full_with_zero)$LABEL_COR))) 
-
-#Adding Vertex 
-#vertex_col <-append(vertex_col,"#FF0000") #adding one extra color to vertex 
 
 #New vertex using LABEL_COR (Facilities Recode)
 V(full_with_zero)$color <- vertex_col[factor(V(full_with_zero)$LABEL_COR)] 
@@ -804,17 +593,20 @@ a=get.vertex.attribute(full_with_zero, 'V2_LABEL_ID')
 b=attributes.csv$V3_LABEL_ID2
 c=cbind(a,b)
 head(c)
+tail(c)
 
 #The most important test full_with_zero
-d=get.vertex.attribute(full_with_zero, 'V2_LABEL_ID')
+d=get.vertex.attribute(full_with_zero, 'name')
 b=attributes.csv$V3_LABEL_ID2
 e=cbind(d,b)
 head(e)
+tail(e)
 ```
 
 #18. Creating non zero dataframe (excluding ties with weight > 0)
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
 full_nonzero_edges <- subset(full_data_frame_id, (
+x2   > 0 |
 var0 > 0 |
 var1 > 0 |
 var2 > 0 |
@@ -839,29 +631,34 @@ var20 > 0 |
 var21 > 0 |
 var22 > 0 |
 var23 > 0 |
-var24 > 0 )
+var24 > 0 |
+atividade> 0 |
+acesso> 0 |
+acesso_positivo> 0 |
+acesso_negativo> 0 |
+acessoeconfianca> 0 |
+total> 0)
 )
 head(full_nonzero_edges)
+tail(full_nonzero_edges)
 
 #Write DataFrame in order to use with pajek (just in case)
 write.csv2(full_nonzero_edges, "~/Banco Redes R/full_nonzero_edges.csv", fileEncoding = "macintosh")
+```
 
+#18.1 Adding igraph object
+```{r}
 #To be sure - from and to (id's) as numeric
 full_nonzero_edges$from<-as.numeric(full_nonzero_edges$from)
 full_nonzero_edges$to<-as.numeric(full_nonzero_edges$to)
 
-#Sorting by from - considering previous problems with matching 
-#full_nonzero_edges=full_nonzero_edges[order(full_nonzero_edges$from),]
-head(full_nonzero_edges)
-
 #Full igraph object without looping or zero edges
 full_no_zero <- graph_from_data_frame(full_nonzero_edges, directed=T) 
-V(full_no_zero)$name<-as.character(V(full_no_zero)$name)
-V(full_no_zero)$name<-as.numeric(V(full_no_zero)$name)
+#V(full_no_zero)$name<-as.character(V(full_no_zero)$name)
+#V(full_no_zero)$name<-as.numeric(V(full_no_zero)$name)
 summary(full_no_zero)
 
 #Sorting in order to prevent disasters 
-#V(full_no_zero)$name=sort(as.numeric(V(full_no_zero)$name))
 V(full_no_zero)$name
 ```
 
@@ -1163,36 +960,41 @@ V(full_no_zero)$color <- vertex_col[factor(V(full_no_zero)$LABEL_COR)]
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
 #The most important test full_no_zero
 a=get.vertex.attribute(full_no_zero, 'V2_LABEL_ID')
-b=attributes.csv$V3_LABEL_ID2
+b=get.vertex.attribute(full_no_zero, 'name')
 c=cbind(a,b)
 head(c)
+tail(c)
 
 #The most important test full_no_zero
-d=get.vertex.attribute(full_with_zero, 'V2_LABEL_ID')
-b=attributes.csv$V3_LABEL_ID2
+d=get.vertex.attribute(full_no_zero, 'name')
+b=get.vertex.attribute(full_no_zero, 'V3_LABEL_ID2')
 e=cbind(d,b)
 head(e)
+tail(e)
 ```
+
+
+#Changing default numbered name from igraph object to typeof.service_service.name
+```{r}
+V(full_no_zero)$NumberID<-V(full_no_zero)$name
+V(full_no_zero)$name<-V(full_no_zero)$V5_LABEL_NOME
+```
+
+
 
 #22. Creating individual graphs by type after all atributtes are added
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
+#B1 Tipo de Relacionamento	B1.1 No último ano com quais TIPOS de serviço o SEU SERVIÇO teve alguma relação/ativade em conjunto referente à atenção aos USUÁRIOS DE DROGAS
+x2 = delete.edges(full_no_zero, E(full_no_zero)[get.edge.attribute(full_no_zero, name = "x2") == 0])
+
 #B1 Tipo de Relacionamento	B1.2 – TIPOS DE RELACIONAMENTO - FORMAL. No que se refere à ATENÇÃO aos USUÁRIOS DE DROGAS, você caracteriza como FORMAL o relacionamento que o seu serviço possui com os #serviços a seguir ? Parceria Formal - Feita através de paceria/fluxo institucional devadmente reconheca, por meio de convênios, contratos, ou acordo entre gesotres/secretarias etc.
 var0 = delete.edges(full_no_zero, E(full_no_zero)[get.edge.attribute(full_no_zero, name = "var0") == 0])
-
-#Add default edge weight as some igraph analysis use this as default measure decreasing writing code burn - we need to be carefull tough because we have _neg weights either 
-E(var0)$weight<-E(var0)$var0
 
 #B2- ATIVADES EM CONJUNTO	B2.1 – TIPOS DE RELACIONAMENTO - REFERENCIA DE ENVIO  - O SEU SERVIÇO MANTÉM ALGUM TIPO DE REFERÊNCIA DE ENVIO OU ENCAMINHAMENTO DE USUÁRIO DE DROGAS COM OS SERVIÇOS A SEGUIR: #REFERENCIA DE ENVIO - Usuários de Drogas encaminhados a outros serviços da rede
 var1 = delete.edges(full_no_zero, E(full_no_zero)[get.edge.attribute(full_no_zero,name = "var1") == 0])
 
-#Add default edge weight as some igraph analysis use this as default measure decreasing writing code burn - we need to be carefull tough because we have _neg weights either 
-E(var1)$weight<-E(var1)$var1
-
 #B2- ATIVADES EM CONJUNTO	B2.2 – TIPOS DE RELACIONAMENTO - REFERENCIA DE RECEBIMENTO CONTRAREFERENCIA - O SEU SERVIÇO MANTÉM ALGUM TIPO DE REFERÊNCIA DE RECEBIMENTO OU CONTRAREFERENCIA DE USUÁRIO DE #DROGAS COM: REFERENCIA DE RECEBIMENTO CONTRAREFERENCIA  - USUÁRIOS DE DROGAS RECEBOS OU CONTRAREFERENCIADOS DE OUTROS SERVIÇOS DA REDE
 var2 = delete.edges(full_no_zero, E(full_no_zero)[get.edge.attribute(full_no_zero,name = "var2") == 0])
-
-#Add default edge weight as some igraph analysis use this as default measure decreasing writing code burn - we need to be carefull tough because we have _neg weights either 
-E(var2)$weight<-E(var2)$var2
 
 #B2- ATIVADES EM CONJUNTO	B2.3 – TIPOS DE RELACIONAMENTO  - COORDENAÇÃO CONJUNTA DE CASOS  - O SEU SERVIÇO MANTÉM ALGUM TIPO DE COORDENAÇÃO CONJUNTA DE CASOS REFERENTE AO USO DE DROGAS COM: COORDENAÇÃO #CONJUNTA DE CASOS - COMPARTILHAMENTO DE DADOS E CONDUTAS A RESPEITO DE UM CASO ESPECÍFICO RELACIONADO AO USO DE DROGAS, RESPONSABILADE COMPARTILHADA DE CASOS, TRATAMENTO DE USUÁRIOS DE DROGAS EM CONJUNTO #COM OUTROS SERVIÇOS
 var3 = delete.edges(full_no_zero, E(full_no_zero)[get.edge.attribute(full_no_zero,name = "var3") == 0])
@@ -1334,6 +1136,12 @@ E(atividade)$weight<-E(atividade)$atividade
 acesso = delete.edges(full_no_zero, E(full_no_zero)[get.edge.attribute(full_no_zero,name = "acesso") == 0])
 E(acesso)$weight<-E(acesso)$acesso
 
+#SOMATÓRIO ACESSO POSITIVO
+acesso_positivo = delete.edges(full_no_zero, E(full_no_zero)[get.edge.attribute(full_no_zero,name = "acesso_positivo") == 0])
+
+#SOMATÓRIO ACESSO NEGATIVO
+acesso_negativo = delete.edges(full_no_zero, E(full_no_zero)[get.edge.attribute(full_no_zero,name = "acesso_negativo") == 0])
+
 #SOMATÓRIO CONFIANÇA
 confianca = delete.edges(full_no_zero, E(full_no_zero)[get.edge.attribute(full_no_zero,name = "confianca") == 0])
 E(confianca)$weight<-E(confianca)$confianca
@@ -1344,13 +1152,94 @@ E(acessoeconfianca)$weight<-E(acessoeconfianca)$acessoeconfianca
 
 #SOMATÓRIO TOTAL
 total = delete.edges(full_no_zero, E(full_no_zero)[get.edge.attribute(full_no_zero,name = "total") == 0])
-E(total)$weight<-E(total)$total
+```
+
+#Adding weights to full_no_zero
+```{r}
+#Adding default weigth variable equal to one for full_no_zero
+E(full_no_zero)$weight<-1
+E(full_no_zero)$full_no_zero<-E(full_no_zero)$weight
+```
+
+#Keeping old edge weight as some igraph analysis use this as default measure decreasing writing code burn - we need to be carefull tough because we have _neg weights either 
+```{r}
+E(x2)$aux_x2<-E(x2)$x2
+E(var0)$aux_var0<-E(var0)$var0
+E(var1)$aux_var1<-E(var1)$var1
+E(var2)$aux_var2<-E(var2)$var2
+E(var3)$aux_var3<-E(var3)$var3
+E(var4)$aux_var4<-E(var4)$var4
+E(var5)$aux_var5<-E(var5)$var5
+E(var6)$aux_var6<-E(var6)$var6
+E(var7)$aux_var7<-E(var7)$var7
+E(var8)$aux_var8<-E(var8)$var8
+E(var9)$aux_var9<-E(var9)$var9
+E(var10)$aux_var10<-E(var10)$var10
+E(var11)$aux_var11<-E(var11)$var11
+E(var12)$aux_var12<-E(var12)$var12
+E(var13)$aux_var13<-E(var13)$var13
+E(var14)$aux_var14<-E(var14)$var14
+E(var15)$aux_var15<-E(var15)$var15
+E(var16)$aux_var16<-E(var16)$var16
+E(var17)$aux_var17<-E(var17)$var17
+E(var18)$aux_var18<-E(var18)$var18
+E(var19)$aux_var19<-E(var19)$var19
+E(var20)$aux_var20<-E(var20)$var20
+E(var21)$aux_var21<-E(var21)$var21
+E(var22)$aux_var22<-E(var22)$var22
+E(var23)$aux_var23<-E(var23)$var23
+E(var24)$aux_var24<-E(var24)$var24
+E(atividade)$aux_atividade<-E(atividade)$atividade
+E(acesso)$aux_acesso<-E(acesso)$acesso
+E(acesso_positivo)$aux_acesso_positivo<-E(acesso_positivo)$acesso_positivo
+E(acesso_negativo)$aux_acesso_negativo<-E(acesso_negativo)$acesso_negativo
+E(confianca)$aux_confianca<-E(confianca)$confianca
+E(acessoeconfianca)$aux_acessoeconfianca<-E(acessoeconfianca)$acessoeconfianca
+E(total)$aux_total<-E(total)$total
+```
+
+#Adding as default weight recode weights 
+```{r}
+E(x2)$weight<-E(x2)$neg_x2
+E(var0)$weight<-E(var0)$neg_var0
+E(var1)$weight<-E(var1)$neg_var1
+E(var2)$weight<-E(var2)$neg_var2
+E(var3)$weight<-E(var3)$neg_var3
+E(var4)$weight<-E(var4)$neg_var4
+E(var5)$weight<-E(var5)$neg_var5
+E(var6)$weight<-E(var6)$neg_var6
+E(var7)$weight<-E(var7)$neg_var7
+E(var8)$weight<-E(var8)$neg_var8
+E(var9)$weight<-E(var9)$neg_var9
+E(var10)$weight<-E(var10)$neg_var10
+E(var11)$weight<-E(var11)$neg_var11
+E(var12)$weight<-E(var12)$neg_var12
+E(var13)$weight<-E(var13)$neg_var13
+E(var14)$weight<-E(var14)$neg_var14
+E(var15)$weight<-E(var15)$neg_var15
+E(var16)$weight<-E(var16)$neg_var16
+E(var17)$weight<-E(var17)$neg_var17
+E(var18)$weight<-E(var18)$neg_var18
+E(var19)$weight<-E(var19)$neg_var19
+E(var20)$weight<-E(var20)$neg_var20
+E(var21)$weight<-E(var21)$neg_var21
+E(var22)$weight<-E(var22)$neg_var22
+E(var23)$weight<-E(var23)$neg_var23
+E(var24)$weight<-E(var24)$neg_var24
+E(atividade)$weight<-E(atividade)$neg_atividade
+E(acesso)$weight<-E(acesso)$neg_acesso
+E(acesso_positivo)$weight<-E(acesso_positivo)$neg_acesso_positivo
+E(acesso_negativo)$weight<-E(acesso_negativo)$neg_acesso_negativo
+E(confianca)$weight<-E(confianca)$neg_confianca
+E(acessoeconfianca)$weight<-E(acessoeconfianca)$acessoeconfianca
+E(total)$weight<-E(total)$neg_total
 ```
 
 #CACHE
 ```{r}
 var_name <- c(
 "full_no_zero",
+"x2",
 "var0",
 "var1",
 "var2",
@@ -1384,6 +1273,7 @@ var_name <- c(
 
 var_name_a <- c(
 "full_no_zero*",
+"x2*",
 "var0*",
 "var1*",
 "var2*",
@@ -1416,6 +1306,7 @@ var_name_a <- c(
 "total*")
 
 label_name_a <- c("REDE COMPLETA - Sem Zeros",
+"RELACIONAMENTO FORMAL E INFORMAL",
 "RELACIONAMENTO FORMAL",
 "REFERENCIA DE ENVIO",
 "REFERENCIA DE RECEBIMENTO CONTRAREFERENCIA",
@@ -1448,6 +1339,7 @@ label_name_a <- c("REDE COMPLETA - Sem Zeros",
 "TOTAL")
 
 label_file <- c("~/SNArRDJF/REDE_COMPLETA_Sem_Zeros.Rmd",
+"~/SNArRDJF/RELACIONAMENTO_FORMAL_E_INFORMAL.Rmd",
 "~/SNArRDJF/RELACIONAMENTO_FORMAL.Rmd",
 "~/SNArRDJF/REFERENCIA_DE_ENVIO.Rmd",
 "~/SNArRDJF/REFERENCIA_DE_RECEBIMENTO_CONTRAREFERENCIA.Rmd",
@@ -1486,16 +1378,13 @@ graph_label_RDJF<-graph_label_RDJF
 head(graph_label_RDJF)
 write.table(graph_label_RDJF, row.names=FALSE,file="~/SNArRDJF/patterns.txt", sep="  ", fileEncoding = "UTF-8")
 write.csv(graph_label_RDJF, row.names=T,file="~/SNArRDJF/patterns.csv", fileEncoding = "UTF-8")
-
-# I need to improve this script using for or grep but too lazy for bash now
-x<-"sed -e 's/full_no_zero/var2/g' ~/SNArRDJF/full_no_zero.Rmd > ~/SNArRDJF/var2.Rmd" %>% system()
-
-
-
 ```
 
 #23. Saving objects to connect with futher scripts
 ```{r}
 save.image("~/SNArRDJF/1.Principal.RData")
+savehistory(file="~/SNArRDJF/1.Principal.Rhistory")
 ```
+
+#NOW GO TO STEP 2 and 3
 
