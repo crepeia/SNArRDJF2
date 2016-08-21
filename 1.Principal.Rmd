@@ -977,9 +977,8 @@ tail(e)
 #Changing default numbered name from igraph object to typeof.service_service.name
 ```{r}
 V(full_no_zero)$NumberID<-V(full_no_zero)$name
-V(full_no_zero)$name<-V(full_no_zero)$V5_LABEL_NOME
+V(full_no_zero)$name<-V(full_no_zero)$V5_LABEL_TIPO_NOME
 ```
-
 
 
 #22. Creating individual graphs by type after all atributtes are added

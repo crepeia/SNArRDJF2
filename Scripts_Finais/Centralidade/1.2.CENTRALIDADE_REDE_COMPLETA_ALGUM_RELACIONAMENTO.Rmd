@@ -1,0 +1,3035 @@
+---
+title: "SNA Centralities 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)"
+author: "Leonardo Martins"
+date: "17 de julho de 2016"
+output: 
+  html_document: 
+    fig_caption: yes
+    fig_height: 12
+    fig_width: 12
+    keep_md: yes
+    number_sections: yes
+    theme: flatly
+    toc: yes
+---
+#SNA Descritive Analysis from "Projeto Redes de Atenção às pessoas que consomem álcool e outras Drogas em Juiz de Fora-MG   Brazil"  - SNArRDJF
+
+Here you can find a basic script to analysis data from SNArRDJF - this script was elaborated considering its use for orther matrix adjacency data from SNArRDJF - Here we are going to analyse:
+
+# 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)
+
+`#########################
+`# Basic Preparation #####
+`#########################
+
+#1.24. Loading objects generated with 1.Principal.Rmd Script - Please run this script only after run 1.Principal.Rmd
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+rm(list = ls()) # removing previous objects to be sure that we don't have objects conflicts name
+load("~/SNArRDJF/1.Principal.RData")
+```
+##1.25 Reload packages
+```{r, message=TRUE, warning=TRUE}
+suppressMessages(library(RColorBrewer))
+suppressMessages(library(car))
+suppressMessages(library(xtable))
+suppressMessages(library(igraph))
+suppressMessages(library(miniCRAN))
+suppressMessages(library(magrittr))
+suppressMessages(library(keyplayer))
+suppressMessages(library(dplyr))
+suppressMessages(library(feather))
+suppressMessages(library(visNetwork))
+suppressMessages(library(knitr))
+suppressMessages(library(DT))
+```
+##1.26 Adding phantom tools
+```{r, message=TRUE, warning=TRUE}
+#In order to get dinamic javascript object install those ones. If you get problems installing go to Stackoverflow.com and type your error to discover what to do. In some cases the libraries need to be intalled in outside R libs.
+#devtools::install_github("wch/webshot")
+#webshot::install_phantomjs()
+```
+##1.27 Setting a random seed - this is a good strategy to keep the same graph pattern layout in a new report generation
+```{r, message=TRUE, warning=TRUE}
+set.seed(123)
+```
+
+`#########################
+`## Descriptive Analysis #
+`#########################
+
+#0.Simplify Graph - removing loops and duble edges 
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+x2<-simplify(x2) #Simplify
+```
+#1. Descriptive Analysis for 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)
+###1.1 Vertices and Edges Number
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#1. Vertices and Edges Number
+x2_vcount<-vcount(x2)
+x2_ecount<-ecount(x2)
+```
+###1.2 Vertice Number
+Each vertice represents a service - named as an actor in our network
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+vcount(x2)
+```
+###1.3 Edge Number
+Each edge represents a connection between two services named as a tie
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ecount(x2)
+```
+
+#1.4 Density - The proportion of present edges from all possible edges in the network.
+The density of a binary network is simply the proportion of all possible ties that are actually present.
+For a valued network, density is defined as the sum of the ties divided by the number of possible ties (i.e. the ratio of all tie strength that is actually present to the number of possible ties).  
+
+The density of a network may give us insights into such phenomena as the speed at which information diffuses among the nodes, and the extent to which actors have high levels of social capital and/or social constraint.
+#1.4.1 Density
+#Edge Density
+The density of a graph is the ratio of the number of edges and the number of possible edges.
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+edge_density_x2<-edge_density(x2) #The proportion of present edges from all possible edges in the network.
+edge_density_x2
+```
+#1.4.2 Edge connectivity - Adhesion
+The edge connectivity of a graph or two vertices, this is recently also called group adhesion.
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+edge_connectivity(x2, source =NULL, target =NULL, checks = T) #source and target can be replaced - their are here just as default
+```
+# Adhesion example
+In order to use this we need to call source and target using the number of each vertex instead of the name - type in R to get numbers
+#Names and numbers
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$name  
+```
+#Edge Connectivity - "CAPS_AD"==3 and "UAPS RURAL Buiéié"==150
+Point connection calculates the number of nodes that would have to be removed in order for one actor to no longer be able to reach another.  If there are many different pathways that connect two actors, they have high "connectivity" in the sense that there are multiple ways for a signal to reach from one to the other - lower number - worse resilience 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+edge_connectivity(x2, source =150, target =3, checks = T) 
+```
+#1.4.3 Vertex Connectivity - Group Cohesion
+It is the minimum number of vertices needed to remove to make the graph not strongly connected. (If the graph is not strongly connected then this is zero.). The cohesion of a graph (as defined by White and Harary, see references), is the vertex connectivity of the graph. This is calculated by cohesion.
+
+These three functions essentially calculate the same measure(s), more precisely vertex_connectivity is the most general, the other two are included only for the ease of using more descriptive function names.
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+vertex_connectivity(x2, source = NULL, target = NULL, checks = TRUE)
+```
+# Cohesion example
+In order to use this we need to call source and target using the number of each vertex instead of the name - type in R to get numbers - see example above for more details 
+#Vertex Connectivity - "CRE_SOC_ CREAS Norte"==6 and "AJU_MUT_ Grupo A.A. Liberdade" ==185
+Minimum number of vertices needed to remove to make the vertex not connected by any vertex - it leads an error in case of using two connected vertex 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+vertex_connectivity(x2, source =6, target =185, checks = T) 
+```
+#2. Centrality Measures
+• For undirected graphs:
+– Actor centrality - involvement (connections) with other actors
+• For directed graphs:
+– Actor centrality - source of the ties (outgoing edges)
+– Actor prestige - recipient of many ties (incoming edges)
+
+In general - high centrality degree means direct contact with many other actors
+
+#2. Centrality Degree (number of ties/nearest neighbors).
+#Saving in igrpah object
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$indegree<-degree(x2, mode = "in") # Actor prestige - recipient of many ties (incoming edges)
+V(x2)$outdegree <- degree(x2, mode = "out") # Actor centrality - source of the ties (outgoing edges)
+V(x2)$totaldegree <- degree(x2, mode = "total")
+```
+#Saving in Global Environment as an object
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_indegree<-degree(x2, mode = "in")
+x2_outdegree<-degree(x2, mode = "out")
+x2_totaldegree<-degree(x2, mode = "total")
+```
+
+#2.1 Centrality Degree Descriptive Statistics - non-normalized
+# Centrality Degree Descriptive Statistics - In
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+##in
+summary(x2_indegree)
+sd(x2_indegree)
+```  
+#Histogram x2 degree - In
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+hist(degree(x2, mode = "in", normalized = F), ylab="Frequency", xlab="Degree",  breaks=vcount(x2)/10, main="Histogram of Indegree Nodes - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)")
+```  
+# Centrality Degree Descriptive Statistics - Out
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+##out
+summary(x2_outdegree)
+sd(x2_outdegree)
+```  
+#Histogram x2 degree - Out
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+hist(degree(x2, mode = "out", normalized = F), ylab="Frequency", xlab="Degree",  breaks=vcount(x2)/10, main="Histogram of Outdegree Nodes - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)")
+```  
+# Centrality Degree Descriptive Statistics - All
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+##all
+summary(x2_totaldegree)
+sd(x2_totaldegree)
+```  
+#Histogram x2 degree - All
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+hist(degree(x2, mode = "all", normalized = F), ylab="Frequency", xlab="Degree",  breaks=vcount(x2)/10, main="Histogram of All Degree Nodes - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)")
+```  
+#2.1.1 Compute strength - weighted
+A slightly more nuanced metric is “strength centrality”, which is defined as the sum of the weights of all the connections for a given node. This is also sometimes called “weighted degree centrality”
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$x2_strength<- strength(x2, weights=E(x2)$weight)
+x2_strength<- strength(x2, weights=E(x2)$weight)
+```
+##Strength Stats
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_strength)
+sd(x2_strength)
+```
+#Histogram x2 degree - All
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+hist(strength(x2, weights=E(x2)$weight), ylab="Frequency", xlab="Degree",  breaks=vcount(x2)/10, main="Histogram of Strength Degree Nodes - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)")
+```  
+#2.2 Centrality Degree Normalized
+#Centrality Degree Normalized saving igraph object
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$indegree_n<-degree(x2, mode = "in", normalized = T)
+V(x2)$outdegree_n<- degree(x2, mode = "out", normalized = T)
+V(x2)$totaldegree_n<- degree(x2, mode = "total", normalized = T)
+```
+#Saving in Global Environment as an object
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_indegree_n<-degree(x2, mode = "in", normalized = T)
+x2_outdegree_n<-degree(x2, mode = "out", normalized = T)
+x2_totaldegree_n<-degree(x2, mode = "total", normalized = T)
+```
+# Centrality Degree Normalized Descriptive Statistics - in
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_indegree_n)
+sd(x2_indegree_n)
+```
+#Histogram x2 degree normalized - in
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+hist(degree(x2, mode = "in", normalized = T), ylab="Frequency", xlab="Normalized Degree",  breaks=vcount(x2)/10, main="Histogram of Normalized Indegree Nodes - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)")
+```
+# Centrality Degree Normalized Descriptive Statistics - out
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_outdegree_n)
+sd(x2_outdegree_n)
+```
+#Histogram x2 degree normalized - out
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+hist(degree(x2, mode = "out", normalized = T), ylab="Frequency", xlab="Normalized Degree",  breaks=vcount(x2)/10, main="Histogram of Normalized Outdegree Nodes - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)")
+```
+# Centrality Degree Normalized Descriptive Statistics - all
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_totaldegree_n)
+sd(x2_totaldegree_n)
+```
+#Histogram x2 degree normalized - all
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+hist(degree(x2, mode = "all", normalized = T), ylab="Frequency", xlab="Normalized Degree",  breaks=vcount(x2)/10, main="Histogram of Normalized All Degree Nodes - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)")
+```
+#2.2.1 Centralization Degree
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$x2_centr_degree <- centralization.degree(x2)$res
+x2_centr_degree <- centralization.degree(x2)
+```
+#Centralization
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_centr_degree$centralization
+```
+#Theoretical Max
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_centr_degree$theoretical_max
+```
+##2.3 Degree distribution considering total equal one
+#Degree distribution when the totality is considered 1
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_degree.distribution<-degree.distribution(x2)
+```
+#Degree distribution Descriptive Stats
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_degree.distribution)
+sd(x2_degree.distribution)
+```
+#Histogram x2 distribution degree
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+hist(degree.distribution(x2), breaks=vcount(x2)/10, ylab="Frequency", xlab="Degree Distribuition", main="Histogram of Degree Distribuition - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)")
+```
+#Degree Probability Distribution
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+dd <- degree.distribution(x2, cumulative=T, mode="all")
+```
+#Degree Probability Distribution - Plot Cumulative Frequency
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(dd, pch=19, cex=1, col="orange", xlab="Degree", ylab="Cumulative Frequency", main= "Cumulative Frequency of 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2) ")
+```
+#2.4 Log-Log Degree Distribution - Scale Free Network - Does it fit to power law ?
+#Log-Log Degree Distribution - Scale Free Network - Does it fit to power law? 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+dd.x2 <- degree.distribution(x2)
+d <- 1:max(degree(x2))-1
+ind <- (dd.x2 != 0)
+```
+#Plot Log-Log Degree Distribution
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(d[ind], 
+     dd.x2[ind], 
+     log="xy", 
+     col="blue",
+     xlab=c("Log-Degree"), 
+     ylab=c("Log-Intensity"),
+     main="Log-Log Degree Distribution For 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)"
+     )
+```
+#2.5.1 Average Neighbor Degree versus Vertex Degree (log-log scale for 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2))
+The neighborhood of a given order y of a vertex v includes all vertices which are closer to v than the order. Ie. order y=0 is always v itself, order 1 is v plus its immediate neighbors, order 2 is order 1 plus the immediate neighbors of the vertices in order 1, etc.
+#Average Neighbor Degree versus vertex degree (log-log scale for x2)
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_a.nn.deg <- graph.knn(x2,V(x2))$knn %>% round(1)
+```
+#Saving to igraph object
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$x2_a.nn.deg <- graph.knn(x2,V(x2))$knn
+```
+#Table Average Neighbor Degree
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+d<-cbind(V(x2)$LABEL_COR,x2_a.nn.deg)
+datatable(d)
+```
+#Plotting Average Neighbor Degree versus vertex degree
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(degree(x2), 
+     x2_a.nn.deg, 
+     log="xy", 
+     col="goldenrod", 
+     xlab=c("Log Vertex Degree"),
+     ylab=c("Log Average Neighbor Degree"),
+     main="Average Neighbor Degree vs Vertex Degree - Log-Log Scale for 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)"
+     )
+```
+#2.5.2 Average Weighted Neighbor Degree versus vertex degree (log-log scale for weighted 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2))
+
+#Average Weighted Neighbor Degree versus vertex degree (log-log scale for x2)
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_a.nn.deg_w <- graph.knn(x2,V(x2), weights=E(x2)$weight)$knn %>% round(1)
+```
+#Saving to igraph object
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$x2_a.nn.deg_w <-x2_a.nn.deg <- graph.knn(x2,V(x2), weights=E(x2)$weight)$knn
+```
+#Average Weighted Neighbor Descriptive
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_a.nn.deg_w)
+sd(x2_a.nn.deg_w)
+```
+#Table Average Neighbor Degree Weighted
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+d<-cbind(V(x2)$LABEL_COR,x2_a.nn.deg_w)
+datatable(d)
+```
+#Plotting Average Neighbor Degree versus vertex degree
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(degree(x2), 
+     x2_a.nn.deg, 
+     log="xy", 
+     col="goldenrod", 
+     xlab=c("Log Vertex Degree"),
+     ylab=c("Log Average Neighbor Degree"),
+     main="Average Weighted Neighbor Degree vs Vertex Degree - Log-Log Scale For Weighted 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)"
+     )
+```
+#2.5.3 Degree Centralities Dinamic Table
+#Getting Degree Measures
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_indegree<-degree(x2, mode = "in")
+x2_outdegree<-degree(x2, mode = "out")
+x2_totaldegree<-degree(x2, mode = "total")
+x2_strength<- strength(x2, weights=E(x2)$weight)
+x2_indegree_n<-degree(x2, mode = "in", normalized = T) %>% round(3)
+x2_outdegree_n<-degree(x2, mode = "out", normalized = T) %>% round(3)
+x2_totaldegree_n<-degree(x2, mode = "total", normalized = T) %>% round(3)
+x2_centr_degree <- centralization.degree(x2)$res
+x2_a.nn.deg <- graph.knn(x2,V(x2))$knn %>% round(1)
+x2_a.nn.deg_w <- graph.knn(x2,V(x2), weights=E(x2)$weight)$knn %>% round(1)
+```
+#Creating a dataframe of measures
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_df_degree <- data.frame(x2_indegree,
+x2_outdegree, 
+x2_totaldegree,
+x2_indegree_n, 
+x2_outdegree_n,
+x2_totaldegree_n,
+x2_strength,
+x2_centr_degree,
+x2_a.nn.deg,
+x2_a.nn.deg_w) %>% round(3)
+
+#Adding type
+x2_df_degree <-cbind(x2_df_degree, V(x2)$LABEL_COR)
+
+#Adding names
+names(x2_df_degree) <- c("In Degree", "Out Degree", "Total Degree","In Degree Normalized", "Out Degree Normalized", "Total Degree Normalized", "Strength","Centralization Degree","Average Neighbor Degree","Average Weighted Neighbor Degree","Type")
+
+#Ordering Variables
+x2_df_degree<-x2_df_degree[c("Type","In Degree", "Out Degree", "Total Degree","In Degree Normalized", "Out Degree Normalized", "Total Degree Normalized", "Strength","Centralization Degree","Average Neighbor Degree","Average Weighted Neighbor Degree")]
+```
+# General tabel - DT
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+datatable(x2_df_degree, filter = 'top')
+```
+#Aggregating data from previous table - mean
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+aggdata_mean <-aggregate(x2_df_degree, by=list(x2_df_degree$Type), FUN=mean, na.rm=TRUE)
+
+#Removing Type variable
+aggdata_mean<-aggdata_mean[,-c(2)]
+names(aggdata_mean) <- c("Group", "In Degree(M)", "Out Degree(M)", "Total Degree(M)","In Degree Normalized(M)", "Out Degree Normalized(M)", "Total Degree Normalized(M)", "Strength(M)","Centralization Degree(M)","Average Neighbor Degree(M)","Average Weighted Neighbor Degree(M)")
+```
+#Aggregating data from previous table - sd
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+aggdata_sd <-aggregate(x2_df_degree, by=list(x2_df_degree$Type), FUN=sd, na.rm=TRUE) 
+
+#Removing Type variable
+aggdata_sd<-aggdata_sd[,-c(2)]
+names(aggdata_sd) <- c("Group", "In Degree(SD)", "Out Degree(SD)", "Total Degree(SD)","In Degree Normalized(SD)", "Out Degree Normalized(SD)", "Total Degree Normalized(SD)", "Strength(SD)","Centralization Degree(SD)","Average Neighbor Degree(SD)","Average Weighted Neighbor Degree(SD)")
+```
+#Merging mean and standart deviation
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+total <- merge(aggdata_mean,aggdata_sd,by="Group")
+
+#Rounding
+Group<-total[,c(1)] #Keeping group
+total<-total[,-c(1)] %>% round(2) #Rouding
+total<-cbind(Group,total) #Binding toghter
+
+#Organizing Variabels
+total<-total[c("Group","In Degree(M)","In Degree(SD)", "Out Degree(M)", "Out Degree(SD)","Total Degree(M)", "Total Degree(SD)", "In Degree Normalized(M)", "In Degree Normalized(SD)", "Out Degree Normalized(M)", "Out Degree Normalized(SD)", "Total Degree Normalized(M)", "Total Degree Normalized(SD)", "Strength(M)","Strength(SD)", "Centralization Degree(M)","Centralization Degree(SD)","Average Neighbor Degree(M)","Average Neighbor Degree(SD)","Average Weighted Neighbor Degree(M)", "Average Weighted Neighbor Degree(SD)")]
+```
+#Plotting final table with round
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+datatable(total, filter = 'top')
+```
+#2.6.0 - Basic Network Interactive Plotting
+# Passing some default info
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+## Vertex 
+V(x2)$size <- degree(x2)
+V(x2)$label <- V(x2)$V5_LABEL_TIPO_NOME
+V(x2)$label.cex <- degree(x2)/100
+V(x2)$label.color <- "black"
+
+## Just in case if we wanna change colors
+#V(x2)$color <- V(x2)$color # We defined colors in script 1.Principal.Rmd
+
+## Edge
+E(x2)$weight <- E(x2)$weight
+E(x2)$width <- E(x2)$weight
+E(x2)$color <- "gray"
+
+## Here we can change other edge parameter
+#E(x2)[ weight < 0.5 ]$width <- 4
+#E(x2)[ weight < 0.5 ]$color <- "green"
+#E(x2)$label <- LETTERS[1:10]
+#E(x2)$label.cex = seq(1, 2,length.out = 10)
+#E(x2)$label.color = "black"
+```
+#Interactive Plotting
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+visIgraph(x2, physics =TRUE, smooth = TRUE, type = "full", randomSeed = 123) %>%
+  visOptions(width = "100%", height = "90%",
+             highlightNearest = list(enabled = TRUE, degree =1, hover = TRUE),
+             nodesIdSelection = list(enabled = TRUE)) %>%
+  visInteraction(hover = TRUE, navigationButtons = TRUE) %>%
+  visGroups()
+```
+#2.6.1 Network plotting based only on degree measures 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Plotting based only on degree measures 
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=degree(x2)/10,
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     edge.arrow.size=degree(x2)/10000,
+     vertex.label.cex=degree(x2)/500,
+     edge.width=(edge.betweenness(x2, weights=V(x2)$weight))/500,
+     edge.curved = TRUE
+     )
+#Solving Problems with legend rendering 
+a<-V(x2)$LABEL_COR
+b<-V(x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=2,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .5)
+
+#Adding Title
+  title("Network Vertex Degree Sized - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ", cex = .5)
+  text(x = -1, y = -1.2, cex = .5, labels = 
+   sprintf("Median In Degree: %.2f\nMedian Out Degree: %.2f",
+     median(degree(x2, mode="in")), 
+     median(degree(x2, mode="out"))
+   ))
+```
+#2.6.2 Network plotting based only on degree measures 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Get Variable
+V(x2)$x2_color_degree<-V(x2)$totaldegree %>% round(0)
+
+#Creating brewer pallette
+vertex_x2_color_degree<-
+  colorRampPalette(brewer.pal(length(unique(
+          V(x2)$x2_color_degree)), "RdBu"))(
+            length(unique(V(x2)$x2_color_degree)))
+
+#Saving as Vertex properties 
+V(x2)$vertex_x2_color_degree<- vertex_x2_color_degree[as.numeric(cut(degree(x2),breaks =length(unique(V(x2)$x2_color_degree))))]
+   
+#Plotting
+plot(x2, 
+     layout=layout.kamada.kawai(x2),
+     vertex.color=V(x2)$vertex_x2_color_degree,
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=degree(x2)/10,
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     edge.arrow.size=0.1,
+     vertex.label.cex=(degree(x2))/800,
+     edge.width=(edge.betweenness(x2, weights =E(x2)$weight))/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$x2_color_degree
+b<-V(x2)$vertex_x2_color_degree
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+e<-e[order(e$a,decreasing=T),] 
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=2,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .3)
+
+#Adding Title
+  title("Network Vertex Degree Sized and Colored - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Degree: %.2f\nMedian Out Degree: %.2f",
+     median(degree(x2, mode="in")), 
+     median(degree(x2, mode="out"))
+   ))
+```
+#2.6.3 Network Plotting Centralization - Degree Measures - Using Spectral Color as Distance Measure Representation
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Get Variable
+V(x2)$x2_color_degree<-V(x2)$x2_centr_degree
+
+#Creating brewer pallette
+vertex_x2_color_degree<-
+  colorRampPalette(brewer.pal(length(unique(
+          V(x2)$x2_color_degree)), "Spectral"))(
+            length(unique(V(x2)$x2_color_degree)))
+
+#Saving as Vertex properties 
+V(x2)$vertex_x2_color_degree<- vertex_x2_color_degree[as.numeric(cut(V(x2)$x2_color_degree,breaks =length(unique(V(x2)$x2_color_degree))))]
+   
+#Plotting
+plot(x2, 
+     #layout=layout.kamada.kawai(x2),
+     vertex.color=V(x2)$vertex_x2_color_degree,
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=degree(x2)/10,
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     edge.arrow.size=degree(x2)/10000,
+     vertex.label.cex=(degree(x2))/800,
+     edge.width=(edge.betweenness(x2, weights =E(x2)$weight))/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$x2_color_degree
+b<-V(x2)$vertex_x2_color_degree
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+e<-e[order(e$a,decreasing=T),] 
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=2,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .3)
+
+#Adding Title
+  title("Network Vertex Degree Sized and Colored - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Degree: %.2f\nMedian Out Degree: %.2f",
+     median(degree(x2, mode="in")), 
+     median(degree(x2, mode="out"))
+   ))
+```
+#2.6.4 Alternative vizualization using degree in order to genarete sub-graphs - Higher than median degree network
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+# Network elements with lower than meadian degree
+lowerthanmedian.network_x2<-V(x2)[degree(x2)<median(degree(x2))] 
+
+#Deleting vertices based in intersection betewenn x2 
+small_x2<-delete.vertices(x2, lowerthanmedian.network_x2)
+
+#Plotting 
+plot(small_x2, 
+     layout=layout.kamada.kawai(small_x2), 
+     vertex.label=get.vertex.attribute(small_x2,"LABEL_COR"),
+     vertex.size=degree(small_x2)/10,
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     edge.arrow.size=0.1,
+     vertex.label.cex=log(degree(small_x2)+1)/10,
+     edge.width=(edge.betweenness(small_x2))/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(small_x2)$LABEL_COR
+b<-V(small_x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Network Higher Than Median Degree - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Degree: %.2f\nMedian Out Degree: %.2f",
+     median(degree(small_x2, mode="in")), 
+     median(degree(small_x2, mode="out"))
+   )
+  )
+```
+#2.6.5 Alternative vizualization using degree in order to genarete sub-graphs - Lower than median degree network 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+# Network elements with lower than meadian degree
+lowerthanmedian.network_x2<-V(x2)[degree(x2)>median(degree(x2))] 
+
+#Deleting vertices based in intersection betewenn x2 
+small_x2<-delete.vertices(x2, lowerthanmedian.network_x2)
+
+#Plotting 
+plot(small_x2, 
+     layout=layout.kamada.kawai(small_x2), 
+     vertex.label=get.vertex.attribute(small_x2,"LABEL_COR"),
+     vertex.size=degree(small_x2)/2,
+     edge.arrow.size=0.1,
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     vertex.label.degree=(-pi)/2,	
+     vertex.label.cex=log(degree(small_x2)+2)/5,
+     edge.width=(edge.betweenness(small_x2)),
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(small_x2)$LABEL_COR
+b<-V(small_x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Network Lower than Median Degree - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Degree: %.2f\nMedian Out Degree: %.2f",
+     median(degree(small_x2, mode="in")), 
+     median(degree(small_x2, mode="out"))
+   )
+  )
+```
+#2.6.6 Plotting using Average Neighbor Degree
+```{r, echo=FALSE}
+#Plotting based only on degree measures  #x2_a.nn.deg_w 
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=(graph.knn(x2,V(x2))$knn)/10,
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     edge.arrow.size=0.1,
+     vertex.label.cex=sqrt(graph.knn(x2,V(x2))$knn+1)/30,
+     edge.width=(edge.betweenness(x2, weights =E(x2)$weight))/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$LABEL_COR
+b<-V(x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Network Average Neighbor Degree Sized - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median Average Neighbor Degree: %.2f",
+     median(graph.knn(x2,V(x2))$knn)
+   ))
+```
+#2.6.7 Plotting using Average Weighted Neighbor Degree
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Plotting based only on degree measures  x2_a.nn.deg_w 
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=sqrt(graph.knn(x2,V(x2), weights= E(x2)$weight)$knn),
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     edge.arrow.size=0.1,
+     vertex.label.cex=log(graph.knn(x2,V(x2), weights= E(x2)$weight)$knn+1)/10,
+     edge.width=edge.betweenness(x2, weights =E(x2)$weight)/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$LABEL_COR
+b<-V(x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Network Average Weighted Neighbor Degree Sized - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median Average Weighte Neighbor Degree: %.2f",
+     median(graph.knn(x2,V(x2), weights= E(x2)$weight)$knn)
+   ))
+```
+#2.6.8 Circle Degree ***Too intensive computation*** #code
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Circle Degree ***Too intense computation***
+#A_x2 <- get.adjacency(x2, sparse=FALSE)
+#detach("package:igraph", unload=TRUE)
+#library(network)
+#g <- network::as.network.matrix(A_x2)
+#library(sna)
+#gplot.target(g, degree(g), main="Circle Degree")
+#library(igraph)
+```
+#2.7 Closeness - centrality based on distance to others in the graph - How close an actor to all the other actors in network.
+
+High closeness centrality - short communication path to others, minimal number of steps to reach others.
+
+Answers the “Kevin Bacon” question:
+“How many steps are required to access every other vertex from a given vertex?”
+
+One practical implication of this metric: it helps you gauge how information might spread within your network, and who might be the best people to leverage if you need to make sure information gets around. (http://www.tc.umn.edu/~alink/R-social-network-analysis.html)
+
+Closeness centrality can be defined as a measure of how far other nodes are from the node in question. Nodes with high closeness centrality are likely to be relatively efficient in receiving or transmitting information to/from distant parts of the social network.
+
+Scores may be interpreted as arising from a reciprocal process in which the centrality of each actor is proportional to the sum of the centralities of those actors to whom he or she is connected. In general, vertices with high eigenvector centralities are those which are connected to many other vertices which are, in turn, connected to many others (and so on). (The perceptive may realize that this implies that the largest values will be obtained by individuals in large cliques (or high-density substructures)
+
+#2.7.1 Closeness Non-normalized
+#Closeness Non-normalized - #Saving to Igraph object
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$incloseness <- closeness(x2, mode = "in") %>% round(6)
+V(x2)$outcloseness <- closeness(x2, mode = "out") %>% round(6)
+V(x2)$totalcloseness <- closeness(x2, mode = "total") %>% round(4)
+```
+#Saving to Environment
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_incloseness<- closeness(x2, mode = "in") %>% round(6)
+x2_outcloseness<- closeness(x2, mode = "out") %>% round(6)
+x2_totalcloseness<- closeness(x2, mode = "total") %>% round(6)
+```
+###Closeness Non-normalized - in
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_incloseness)
+sd(x2_incloseness)
+```
+###Closeness Non-normalized -out
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_outcloseness)
+sd(x2_outcloseness)
+```
+###Closeness Non-normalized - all
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_totalcloseness)
+sd(x2_totalcloseness)
+```
+#2.7.2 Closeness Normalized 
+#Saving to Igraph object
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$incloseness_n <- closeness(x2, mode = "in", normalized = T) %>% round(6)
+V(x2)$outcloseness_n <- closeness(x2, mode = "out", normalized = T) %>% round(6)
+V(x2)$totalcloseness_n <- closeness(x2, mode = "total", normalized = T) %>% round(6)
+```
+#Saving to Environment
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_incloseness_n<- closeness(x2, mode = "in", normalized = T) %>% round(6)
+x2_outcloseness_n<- closeness(x2, mode = "out", normalized = T) %>% round(6)
+x2_totalcloseness_n<- closeness(x2, mode = "total", normalized = T) %>% round(6)
+```
+##Closeness Normalized  - in
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_incloseness_n)
+sd(x2_incloseness_n)
+```
+##Closeness Normalized  - out
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_outcloseness_n)
+sd(x2_outcloseness_n)
+```
+##Closeness Normalized - all
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_totalcloseness_n)
+sd(x2_totalcloseness_n)
+```
+#2.7.3 Closeness normalized weighted 
+Closeness Normalized weighted - it only makes sense with var>7 or acesso and confianca - even though its here to make as a first script draft
+#Saving to Igraph object
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$incloseness_w <- closeness(x2, mode = "in", normalized = T, weights=E(x2)$weight) %>% round(6)
+V(x2)$outcloseness_w <- closeness(x2, mode = "out", normalized = T,weights=E(x2)$weight) %>% round(6)
+V(x2)$totalcloseness_w <- closeness(x2, mode = "total", normalized = T, weights=E(x2)$weight) %>% round(6)
+```
+#Saving to Environment
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_incloseness_w<- closeness(x2, mode = "in", normalized = T, weights=E(x2)$weight) %>% round(6)
+x2_outcloseness_w<- closeness(x2, mode = "out", normalized = T, weights=E(x2)$weight) %>% round(6)
+x2_totalcloseness_w<- closeness(x2, mode = "total", normalized = T, weights=E(x2)$weight) %>% round(6)
+```
+###Closeness Normalized weighted - in
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_incloseness_w)
+sd(x2_incloseness_w)
+```
+###Closeness Normalized weighted - out
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_outcloseness_w)
+sd(x2_outcloseness_w)
+```
+###Closeness Normalized weighted - all
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_totalcloseness_w)
+sd(x2_totalcloseness_w)
+```
+#2.7.4 Closeness Weighted for all vertex 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$x2_closeness_stats_w <- closeness(x2, vids = V(x2), mode = "all", weights =E(x2)$weight, normalized = FALSE)
+x2_closeness_stats_w <- closeness(x2, vids = V(x2), mode = "all", weights =E(x2)$weight, normalized = FALSE)
+```
+#2.7.5 Centralization Closseness
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$x2_centr_closeness<- centralization.closeness(x2)$res
+x2_centr_closeness<- centralization.closeness(x2)$res
+x2_centr_closeness_all<- centralization.closeness(x2)
+```
+#Centralization
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_centr_closeness_all$centralization
+```
+#Theoretical Max
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_centr_closeness_all$theoretical_max
+```
+#2.7.6 Closeness Dinamic Table
+#Getting Closeness Measures
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_incloseness<- closeness(x2, mode = "in") %>% round(6)
+x2_outcloseness<- closeness(x2, mode = "out") %>% round(6)
+x2_totalcloseness<- closeness(x2, mode = "total") %>% round(6)
+x2_incloseness_n<- closeness(x2, mode = "in", normalized = T) %>% round(6)
+x2_outcloseness_n<- closeness(x2, mode = "out", normalized = T) %>% round(6)
+x2_totalcloseness_n<- closeness(x2, mode = "total", normalized = T) %>% round(6)
+x2_incloseness_w<- closeness(x2, mode = "in", normalized = T, weights=E(x2)$weight) %>% round(6)
+x2_outcloseness_w<- closeness(x2, mode = "out", normalized = T, weights=E(x2)$weight) %>% round(6)
+x2_totalcloseness_w<- closeness(x2, mode = "total", normalized = T, weights=E(x2)$weight) %>% round(6)
+x2_closeness_stats_w <- closeness(x2, vids = V(x2), mode = "all", weights=E(x2)$weight, normalized = FALSE) %>% round(6)
+x2_centr_closeness <- centralization.closeness(x2)$res %>% round(6)
+```
+#Creating a datagrame of measures
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_df_closseness <- data.frame(
+x2_incloseness,
+x2_outcloseness,
+x2_totalcloseness,
+x2_incloseness_n,
+x2_outcloseness_n,
+x2_totalcloseness_n,
+x2_incloseness_w,
+x2_outcloseness_w,
+x2_totalcloseness_w,
+x2_closeness_stats_w,
+x2_centr_closeness) %>% round(6)
+
+#Adding type
+x2_df_closseness <-cbind(x2_df_closseness, V(x2)$LABEL_COR)
+
+#Adding names
+names(x2_df_closseness) <- c("In Closeness", "Out Closeness", "Total Closeness","In Closeness Normalized", "Out Closeness Normalized", "Total Closeness Normalized", "In Closeness Weighted", "Out Closeness Weighted", "Total Closeness Weighted", "All Closeness Weighted","Centralization Closeness","Type")
+
+#Ordering Variables
+x2_df_closseness<-x2_df_closseness[c("Type","In Closeness", "Out Closeness", "Total Closeness","In Closeness Normalized", "Out Closeness Normalized", "Total Closeness Normalized", "In Closeness Weighted", "Out Closeness Weighted", "Total Closeness Weighted", "All Closeness Weighted","Centralization Closeness")]
+```
+# General tabel - DT
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+datatable(x2_df_closseness, filter = 'top')
+```
+#Aggregating data from previous table - mean
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+aggdata_mean <-aggregate(x2_df_closseness, by=list(x2_df_closseness$Type), FUN=mean, na.rm=TRUE)
+
+names(aggdata_mean) <- c("Group","Type","In Closeness(M)", "Out Closeness(M)", "Total Closeness(M)","In Closeness Normalized(M)", "Out Closeness Normalized(M)", "Total Closeness Normalized(M)", "In Closeness Weighted(M)", "Out Closeness Weighted(M)","Total Closeness Weighted(M)", "All Closeness Weighted(M)","Centralization Closeness(M)")
+  
+#Removing Type variable
+aggdata_mean<-aggdata_mean[,-c(2)]
+```
+#Aggregating data from previous table - sd
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+aggdata_sd <-aggregate(x2_df_closseness, by=list(x2_df_closseness$Type), FUN=sd, na.rm=TRUE) 
+
+names(aggdata_sd) <- c("Group","Type","In Closeness(SD)", "Out Closeness(SD)", "Total Closeness(SD)","In Closeness Normalized(SD)", "Out Closeness Normalized(SD)", "Total Closeness Normalized(SD)", "In Closeness Weighted(SD)", "Out Closeness Weighted(SD)","Total Closeness Weighted(SD)", "All Closeness Weighted(SD)","Centralization Closeness(SD)")
+
+#Removing Type variable
+aggdata_sd<-aggdata_sd[,-c(2)]
+
+#Merging mean and standart deviation
+total <- merge(aggdata_mean,aggdata_sd,by="Group")
+
+#Rounding
+Group<-total[,c(1)] #Keeping group
+total<-total[,-c(1)] %>% round(6) #Rouding
+total<-cbind(Group,total) #Binding toghter
+
+#Organizing Variabels
+total<-total[c("Group","In Closeness(M)", "In Closeness(SD)", "Out Closeness(M)", "Out Closeness(SD)", "Total Closeness(M)","Total Closeness(SD)","In Closeness Normalized(M)", "In Closeness Normalized(SD)", "Out Closeness Normalized(M)", "Out Closeness Normalized(SD)", "Total Closeness Normalized(M)","Total Closeness Normalized(SD)", "In Closeness Weighted(M)","In Closeness Weighted(SD)", "Out Closeness Weighted(M)", "Out Closeness Weighted(SD)","Total Closeness Weighted(M)","Total Closeness Weighted(SD)","All Closeness Weighted(M)","All Closeness Weighted(SD)","Centralization Closeness(M)","Centralization Closeness(SD)")]
+```
+#Plotting final table with round for Closseness
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+datatable(total, filter = 'top')
+```
+#2.7.6 Network Plotting Based On Closeness 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Get Variable
+V(x2)$x2_color_degree<-round(V(x2)$totalcloseness,4)
+
+#Creating brewer pallette
+vertex_x2_color_degree<-
+  colorRampPalette(brewer.pal(length(unique(
+          V(x2)$x2_color_degree)), "RdBu"))(
+            length(unique(V(x2)$x2_color_degree)))
+
+#Saving as Vertex properties 
+V(x2)$vertex_x2_color_degree<-
+  vertex_x2_color_degree[as.numeric(
+  cut(V(x2)$x2_color_degree,
+      breaks=length(unique(V(x2)$x2_color_degree))))]
+
+#Plotting
+plot(x2, 
+     layout=layout.kamada.kawai(x2),
+     vertex.color=V(x2)$vertex_x2_color_degree,
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=closeness(x2)*4000,
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     edge.arrow.size=0.1,
+     vertex.label.cex=(closeness(x2))/80,
+     edge.width=(edge.betweenness(x2, weights =E(x2)$weight))/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$x2_color_degree
+b<-V(x2)$vertex_x2_color_degree
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+e<-e[order(e$a,decreasing=T),] 
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .3)
+
+#Adding Title
+  title("Network Closeness Degree Sized and Colored - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Closennes: %.4f\nMedian Out Closennes: %.4f",
+     median(closeness(x2, mode="in")), 
+     median(closeness(x2, mode="out"))
+   ))
+```
+#2.7.6 Network Plotting Based On Centralization Closeness 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Get Variable
+V(x2)$x2_color_degree<-round(V(x2)$x2_centr_closeness,2)
+
+#Creating brewer pallette
+vertex_x2_color_degree<-
+  colorRampPalette(brewer.pal(length(unique(
+          V(x2)$x2_color_degree)), "Spectral"))(
+            length(unique(V(x2)$x2_color_degree)))
+
+#Saving as Vertex properties 
+V(x2)$vertex_x2_color_degree<-
+  vertex_x2_color_degree[as.numeric(
+  cut(V(x2)$x2_color_degree,
+      breaks=length(unique(V(x2)$x2_color_degree))))]
+
+#Plotting
+plot(x2, 
+     layout=layout.kamada.kawai(x2),
+     vertex.color=V(x2)$vertex_x2_color_degree,
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=centralization.closeness(x2)$res*20,
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     edge.arrow.size=0.1,
+     vertex.label.cex=centralization.closeness(x2)$res,
+     edge.width=(edge.betweenness(x2, weights =E(x2)$weight))/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$x2_color_degree
+b<-V(x2)$vertex_x2_color_degree
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+e<-e[order(e$a,decreasing=T),] 
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1.25, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .3)
+
+#Adding Title
+  title("Network Centralization Closeness - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Closennes: %.4f\nMedian Out Closennes: %.4f",
+     median(closeness(x2, mode="in")), 
+     median(closeness(x2, mode="out"))
+   ))
+```
+#2.8 Betweenness - Number of shortest paths going through the actor σst(i)
+High betweenness centrality - vertex lies on many shortest paths. Probability that a communication from s
+to t will go through i - considering σst(i).
+Betweenness measures the number of shortest paths between nodes in the network that go through the node in question. Nodes with relatively high betweenness are likely to be key conduits of information flow across a network, and their removal may have a large impact on spreading phenomena.
+
+#2.8.1 Betweenness Centrality -(Vertex)
+Betweenness centrality based on a broker position connecting others or Number of geodesics that pass through the node or the edge. A higher number means an more important node.
+#Saving objects
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$betweenness <- betweenness(x2) %>% round(1)
+x2_betweenness <- betweenness(x2) %>% round(1)
+```
+##Betweenness Centrality - all
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_betweenness)
+sd(x2_betweenness)
+```
+#2.8.2 Betweenness Centrality Weighted - (Vertex)
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$x2_betweenness_w <- betweenness(x2, weights=E(x2)$weight) %>% round(1)
+x2_betweenness_w <- betweenness(x2, weights=E(x2)$weight) %>% round(1)
+```
+##Betweenness Centrality Weighted - (Vertex) - all
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_betweenness_w)
+sd(x2_betweenness_w)
+```
+#2.8.3 Centralization Betweenness
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$x2_centr_betweenness <- centralization.betweenness(x2)$res
+x2_centr_betweenness <- centralization.betweenness(x2)
+```
+#Centralization
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_centr_betweenness$centralization
+```
+#Theoretical Max
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_centr_betweenness$theoretical_max
+```
+#2.7.6 Betweenness Vertex Centrality Dinamic Table
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Betweenness Vertex Centrality Measures Dinamic Table
+#Getting  Measures
+x2_betweenness <- betweenness(x2) %>% round(1)
+x2_betweenness_w <- betweenness(x2, weights=E(x2)$weight) %>% round(1)
+x2_centr_betweenness <- centralization.betweenness(x2)$res %>% round(1)
+
+#Creating a dataframe of measures
+x2_df_betweenness <- data.frame(x2_betweenness,
+x2_betweenness_w,
+x2_centr_betweenness) %>% round(1)
+
+#Adding type
+x2_df_betweenness <-cbind(x2_df_betweenness, V(x2)$LABEL_COR)
+
+#Adding names
+names(x2_df_betweenness) <- c("Betweenness", "Betweenness Weighted", "Centralization Betweenness","Type")
+
+#Ordering Variables
+x2_df_betweenness<-x2_df_betweenness[c("Type","Betweenness", "Betweenness Weighted", "Centralization Betweenness")]
+```
+# General tabel for Betweenness
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+datatable(x2_df_betweenness, filter = 'top')
+```
+#Aggregating data from previous table - mean
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+aggdata_mean <-aggregate(x2_df_betweenness, by=list(x2_df_betweenness$Type), FUN=mean, na.rm=TRUE)
+
+names(aggdata_mean) <- c("Group","Type","Betweenness(M)", "Betweenness Weighted(M)", "Centralization Betweenness(M)")
+  
+#Removing Type variable
+aggdata_mean<-aggdata_mean[,-c(2)]
+```
+#Aggregating data from previous table - sd
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+aggdata_sd <-aggregate(x2_df_betweenness, by=list(x2_df_betweenness$Type), FUN=sd, na.rm=TRUE) 
+
+names(aggdata_sd) <- c("Group","Type","Betweenness(SD)", "Betweenness Weighted(SD)", "Centralization Betweenness(SD)")
+
+#Removing Type variable
+aggdata_sd<-aggdata_sd[,-c(2)]
+```
+#Merging mean and standart deviation
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+total<- merge(aggdata_mean,aggdata_sd,by="Group")
+
+#Rounding
+Group<-total[,c(1)] #Keeping group
+total<-total[,-c(1)] %>% round(1) #Rouding
+total<-cbind(Group,total) #Binding toghter
+
+#Organizing Variabels
+total<-total[c("Group","Betweenness(M)","Betweenness(SD)","Betweenness Weighted(M)", "Betweenness Weighted(SD)", "Centralization Betweenness(M)","Centralization Betweenness(SD)")]
+```
+#Plotting final table with round
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+datatable(total, filter = 'top')
+```
+#2.8.1 Plotting Betweenness Centrality - (Vertex)
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Plotting based only on betweenness measures 
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=betweenness(x2)/500,
+     edge.arrow.size=0.1,
+    vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     vertex.label.cex=(betweenness(x2)+1)/10000,
+     edge.width=edge.betweenness(x2, weights =E(x2)$weight)/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$LABEL_COR
+b<-V(x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Network Vertex Betweenness Sized - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median Betweenness: %.2f\nSD Betweenness: %.2f",
+     median(betweenness(x2)), 
+     sd(betweenness(x2))
+   ))
+```
+#2.8.2 Network Plotting Based On Centralization Betweenness
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Get Variable
+V(x2)$x2_centr_betweenness<-(centralization.betweenness(x2)$res)/10000
+V(x2)$x2_color_degree<-round(V(x2)$x2_centr_betweenness,1)
+
+#Creating brewer pallette
+vertex_x2_color_degree<-
+  colorRampPalette(brewer.pal(length(unique(
+          V(x2)$x2_color_degree)), "Spectral"))(
+            length(unique(V(x2)$x2_color_degree)))
+
+#Saving as Vertex properties 
+V(x2)$vertex_x2_color_degree<-
+  vertex_x2_color_degree[as.numeric(
+  cut(V(x2)$x2_color_degree,
+      breaks=length(unique(V(x2)$x2_color_degree))))]
+
+#Plotting
+plot(x2, 
+     layout=layout.kamada.kawai(x2),
+     vertex.color=V(x2)$vertex_x2_color_degree,
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=(centralization.betweenness(x2)$res)/500,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     edge.arrow.size=0.1,
+     vertex.label.cex=(centralization.betweenness(x2)$res + 1)/10000,
+     edge.width=(edge.betweenness(x2, weights =E(x2)$weight))/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$x2_color_degree
+b<-V(x2)$vertex_x2_color_degree
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+e<-e[order(e$a,decreasing=T),] 
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1.25, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .3)
+
+#Adding Title
+  title("Network Centralization Betweenness - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median Betweenness: %.0f\nSD Betweenness: %.0f",
+     median(betweenness(x2)), 
+     sd(betweenness(x2))
+   ))
+```
+#2.9 Closeness based on Eigenvector and Values
+
+Centrality proportional to the sum of connection centralities - Values of the first eigenvector of the graph matrix.
+
+The eigenvector approach is an effort to find the most central actors (i.e. those with the smallest farness from others) in terms of the "global" or "overall" structure of the network, and to pay less attention to patterns that are more "local." The method used to do this is a factor analysis that identify "dimensions" of the distances among actors. 
+
+The location of each actor with respect to each dimension is called an "eigenvalue," and the collection of such values is called the "eigenvector." 
+
+Usually, the first dimension captures the "global" aspects of distances among actors; second and further dimensions capture more specific and local sub-structures.
+
+#2.9.1 Eigen Centrality - Saving objects
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Eigen_Centrality 
+V(x2)$eigenvector <- eigen_centrality(x2, directed = TRUE, weights =E(x2)$weight) %$% vector %>% round(3)
+x2_eigenvector <- eigen_centrality(x2, directed = TRUE, weights = E(x2)$weight) %$% vector %>% round(3)
+#Eigenvalue Calculated Eigenvector
+x2_eigenvector_value <- eigen_centrality(x2, directed = TRUE, weights = E(x2)$weight) %$% value %>% round(3) # The eigenvalue corresponding to the calculated eigenvector, i.e. the centrality scores.
+```
+#2.9.2 Eigen Centrality Descriptive
+#all
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_eigenvector)
+sd(x2_eigenvector)
+```
+#Eigenvalue Calculated Eigenvector
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_eigenvector_value
+```
+
+#2.9.3 Centralization EigenVector - how central the most central node in the network in relation to all other nodes.
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$x2_centr_eigen <- centr_eigen(x2, directed = T)$vector
+x2_centr_eigen <-centr_eigen(x2, directed = T)$vector
+```
+#Centralization
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+centr_eigen(x2, directed = T)$centralization
+```
+#Max
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+centr_eigen(x2, directed = T)$theoretical_max
+```
+#2.9.4 Eigenvector Centrality Measures Dinamic Table
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Getting  Measures
+#Eigen_Centrality 
+x2_eigenvector <- eigen_centrality(x2, directed = TRUE) %$% vector %>% round(3)
+x2_eigenvector_w <- eigen_centrality(x2, directed = TRUE, weights = E(x2)$weight) %$% vector %>% round(3) 
+x2_centr_eigen <-centr_eigen(x2, directed = T)$vector
+
+#Creating a datagrame of measures
+x2_df_eigenvector <- data.frame(x2_eigenvector,
+x2_eigenvector_w,
+x2_centr_eigen) %>% round(3)
+
+#Adding type
+x2_df_eigenvector <-cbind(x2_df_eigenvector, V(x2)$LABEL_COR)
+
+#Adding names
+names(x2_df_eigenvector) <- c("Eigenvector", "Eigenvector Weighted", "Centralization Eigenvector","Type")
+
+#Ordering Variables
+x2_df_eigenvector<-x2_df_eigenvector[c("Type","Eigenvector", "Eigenvector Weighted", "Centralization Eigenvector")]
+```
+# General tabel - DT Eigenvector
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+datatable(x2_df_eigenvector, filter = 'top')
+```
+#Aggregating data from previous table - mean
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+aggdata_mean <-aggregate(x2_df_eigenvector, by=list(x2_df_eigenvector$Type), FUN=mean, na.rm=TRUE)
+
+names(aggdata_mean) <- c("Group","Type","Eigenvector(M)", "Eigenvector Weighted(M)", "Centralization Eigenvector(M)")
+  
+#Removing Type variable
+aggdata_mean<-aggdata_mean[,-c(2)]
+```
+#Aggregating data from previous table - sd
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+aggdata_sd <-aggregate(x2_df_eigenvector, by=list(x2_df_eigenvector$Type), FUN=sd, na.rm=TRUE) 
+
+names(aggdata_sd) <- c("Group","Type","Eigenvector(SD)", "Eigenvector Weighted(SD)", "Centralization Eigenvector(SD)")
+
+#Removing Type variable
+aggdata_sd<-aggdata_sd[,-c(2)]
+```
+#Merging mean and standart deviation
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+total <- merge(aggdata_mean,aggdata_sd,by="Group")
+
+#Rounding
+Group<-total[,c(1)] #Keeping group
+total<-total[,-c(1)] %>% round(3) #Rouding
+total<-cbind(Group,total) #Binding toghter
+
+#Organizing Variabels
+total<-total[c("Group","Eigenvector(M)","Eigenvector(SD)", "Eigenvector Weighted(M)", "Eigenvector Weighted(SD)", "Centralization Eigenvector(M)", "Centralization Eigenvector(SD)")]
+```
+#Plotting final table with round - Eigenvector
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+datatable(total, filter = 'top')
+```
+##2.9.4 Plotting based only on Eigenvector Centrality measures 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Plotting based only on Eigen Centrality measures 
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=(eigen_centrality(x2, directed =TRUE, weights = E(x2)$weight)$vector)*20,
+     vertex.frame.color="#ffffff",
+     edge.arrow.size=0.1,
+     vertex.label.cex=sqrt((eigen_centrality(x2)$vector)+1)/10,
+     edge.width=edge.betweenness(x2, weights =E(x2)$weight)/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$LABEL_COR
+b<-V(x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Eigenvector Centrality Measure - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median Eigenvector: %.2f",
+     median(eigen_centrality(x2)$vector)
+   ))
+```
+#2.9.4 Network Plotting Based On Centralization Eigenvector
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Get Variable
+V(x2)$x2_color_degree<-round(centr_eigen(x2, directed = T)$vector,2)
+
+#Creating brewer pallette
+vertex_x2_color_degree<-
+  colorRampPalette(brewer.pal(length(unique(
+          V(x2)$x2_color_degree)), "Spectral"))(
+            length(unique(V(x2)$x2_color_degree)))
+
+#Saving as Vertex properties 
+V(x2)$vertex_x2_color_degree<-
+  vertex_x2_color_degree[as.numeric(
+  cut(V(x2)$x2_color_degree,
+      breaks=length(unique(V(x2)$x2_color_degree))))]
+
+#Plotting
+plot(x2, 
+     layout=layout.kamada.kawai(x2),
+     vertex.color=V(x2)$vertex_x2_color_degree,
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=centr_eigen(x2, directed = T)$vector*25,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     edge.arrow.size=0.1,
+     vertex.label.cex=(centr_eigen(x2, directed = T)$vector + 1)/5,
+     edge.width=(edge.betweenness(x2, weights =E(x2)$weight))/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$x2_color_degree
+b<-V(x2)$vertex_x2_color_degree
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+e<-e[order(e$a,decreasing=T),] 
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1.25, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .3)
+
+#Adding Title
+  title("Network EigenVector - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median Eigenvector: %.0f\nSD Eigenvector: %.0f",
+     mean(centr_eigen(x2, directed = T)$vector), 
+     sd(centr_eigen(x2, directed = T)$vector)
+   ))
+```
+
+#2.8.1 Bonacich's Power Centrality Scores of Network Positions
+
+Each node's centrality score depends both on how many connections it has and how many connections its connections have.
+“It doesn't only matter how many friends you have. It matters how many friends your friends have.” <http://www.leonidzhukov.net/hse/2014/socialnetworks/papers/Bonacich-Centrality.pdf>
+
+#Power (beta) Centrality Stats
+```{r, results="asis"}
+#Saving power as an object
+x2_power_centrality_stats <- power_centrality(x2, nodes = V(x2), loops = FALSE, exponent = 1, rescale = FALSE, tol = 1e-07, sparse = TRUE)
+
+#Saving power as an igraph attributte
+V(x2)$x2_power_centrality_stats <-power_centrality(x2, nodes = V(x2), loops = FALSE, exponent = 1, rescale = FALSE, tol = 1e-07, sparse = TRUE) 
+```
+#Power (beta) Centrality Stats
+- Are you more powerful if you're connected to powerful people? (positive attenuation factor). 
+- Or are you more powerful if you're connected to weak, dependent people? (negative attenuation factor)
+
+```{r, results="asis"}
+d=as.data.frame(cbind(V(x2)$LABEL_COR, x2_power_centrality_stats))
+names(d)<-c("Type", "Power(beta)")
+datatable(d, filter ="top")
+```
+#2.8.3 #Setting color for each vertex based on Power
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+# Set colors to plot distances:
+V(x2)$x2_power_centrality_stats_r<-round(V(x2)$x2_power_centrality_stats,0)
+
+# Creating brewer pallette
+vertex_col_spower <- colorRampPalette(brewer.pal(length(unique(V(x2)$x2_power_centrality_stats_r)), "Blues"))(length(unique(V(x2)$x2_power_centrality_stats_r))) 
+
+#Saving as Vertex properties                             
+V(x2)$color_spower <- vertex_col_spower[factor(V(x2)$x2_power_centrality_stats_r)]  
+```
+#2.8.3 Plotting Power Centrality Degree
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.color=V(x2)$color_spower, 
+     vertex.label=V(x2)$V5_LABEL_LABEL,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     vertex.size=sqrt((power_centrality(x2)^2))*5,
+     edge.arrow.size=0.1,
+     vertex.label.cex=sqrt((power_centrality(x2)+1)^2)/10,
+     edge.width=edge.betweenness(x2, weights =E(x2)$weight)/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$x2_power_centrality_stats_r
+b<-V(x2)$color_spower
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .5)
+
+#Adding Title
+  title("Bonacich Power Centrality Scores of Network Positions - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median Power Degree: %.2f\n SD Power Degree:%.2f",
+     median(x2_power_centrality_stats),sd(x2_power_centrality_stats)
+     ))
+```
+#2.8.2 Alpha Bonacich's centrality scores of network positions
+```{r, results="asis"}
+#Saving power as an object
+x2_alpha_centrality_stats <- alpha_centrality(x2, loops = FALSE, alpha = 1, exo = 1, weights=E(x2)$weight, tol = 1e-07, sparse = TRUE)
+
+#Saving power as an igraph attributte
+V(x2)$x2_alpha_centrality_stats<-alpha_centrality(x2, loops = FALSE, alpha = 1, exo = 1, weights=E(x2)$weight, tol = 1e-07, sparse = TRUE)
+
+#Descriptive 
+summary(x2_alpha_centrality_stats)
+sd(x2_alpha_centrality_stats)
+```
+
+#Alpha Bonacich's Table
+- Or are you more powerful if you're connected to weak, dependent people? (negative attenuation factor)
+- Are you more powerful if you're connected to powerful people? (positive attenuation factor)
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+d=as.data.frame(cbind(V(x2)$LABEL_COR, round(x2_alpha_centrality_stats,1)))
+names(d)<-c("Type", "Alpha Bonacich")
+datatable(d, filter ="top")
+```
+
+#2.8.3 #Setting color for each vertex based on Alpha
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+# Set colors to plot distances:
+V(x2)$x2_alpha_centrality_stats_r<-round(V(x2)$x2_alpha_centrality_stats,0)
+
+# Creating brewer pallette
+vertex_col_s <- colorRampPalette(brewer.pal(length(unique(V(x2)$x2_alpha_centrality_stats_r)), "YlOrRd"))(length(unique(V(x2)$x2_alpha_centrality_stats_r))) 
+
+#Saving as Vertex properties                                                                  
+V(x2)$color_s <- vertex_col_s[factor(V(x2)$x2_alpha_centrality_stats_r)]  
+```
+
+#2.8.3 Plotting Alpha Centrality Degree
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.color=V(x2)$color_s, 
+     vertex.label=V(x2)$V5_LABEL_LABEL,
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     vertex.size=sqrt((alpha_centrality(x2, loops = FALSE, alpha = 1, exo = 1, weights=E(x2)$weight, tol = 1e-07, sparse = TRUE)^2)), 
+     edge.arrow.size=0.01,
+     vertex.label.cex=sqrt((alpha_centrality(x2))^2)/50,
+     edge.width=edge.betweenness(x2, weights =E(x2)$weight)/500,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$x2_alpha_centrality_stats_r
+b<-V(x2)$color_s
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .5)
+
+#Adding Title
+  title("Bonacich's Alpha Centrality Scores of Network Positions - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median Alpha Degree: %.2f\n SD Alpha Degree:%.2f",
+     median(x2_alpha_centrality_stats),sd(x2_alpha_centrality_stats)
+     ))
+```
+
+#2.10 Hubs and Authorities (HITS)
+Hyperlink-Induced Topic Search (HITS; also known as hubs and authorities) is a link analysis algorithm that rates Web pages, developed by Jon Kleinberg. 
+
+The idea behind Hubs and Authorities stemmed from a particular insight into the creation of web pages when the Internet was originally forming; that is, certain web pages, known as hubs, served as large directories that were not actually authoritative in the information that they held, but were used as compilations of a broad catalog of information that led users direct to other authoritative pages. In other words, a good hub represented a page that pointed to many other pages, and a good authority represented a page that was linked by many different hubs.(from dirty wikipedia)
+
+The scheme therefore assigns two scores for each page: its authority, which estimates the value of the content of the page, and its hub value, which estimates the value of its links to other pages.
+
+
+We can use the same analogy for citation networks like reviews (hubs) vs original research (authoritative) papers
+• Authorities, contain useful information
+• Hubs, contains links to authorities
+• Good authorities referred by good hubs
+• Good hubs point to good authorities
+
+It is possibile to apply this kind of analysis for social network relationships.  
+
+#2.10.1 Hubs - are expected to contain catalogs with a large number of outgoing links; 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Kleinberg’s hub scores
+V(x2)$hub <- hub.score(x2)$vector
+x2_hub<- hub.score(x2)$vector %>% round(4)
+```
+#Table
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+d=as.data.frame(cbind(V(x2)$LABEL_COR, x2_hub))
+names(d)<-c("Type", "Hub Score")
+datatable(d, filter ="top")
+```
+#Stats
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_hub)
+sd(x2_hub)
+```
+#Plotting based on Hub Scores 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=10*hub.score(x2)$vector,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     edge.arrow.size=0.01,
+     vertex.label.cex=log(degree(x2)+1)/10,
+     edge.width=edge.betweenness(x2, weights =E(x2)$weight)/500,
+     edge.curved = TRUE)
+
+#Solving Problems with legend rendering 
+a<-V(x2)$LABEL_COR
+b<-V(x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Network Hub Sized - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Mean Hub Score: %.2f\n SD Hub Score: %.2f",
+     mean(x2_hub),
+     sd(x2_hub)))
+```
+#2.10.2 Authorities would get many incoming links from hubs, presumably because of their high-quality relevant information.
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Kleinberg’s authority scores
+V(x2)$authority.score<- authority.score(x2)$vector
+x2_auth <- authority.score(x2)$vector %>% round(4)
+```
+#Table
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+d=as.data.frame(cbind(V(x2)$LABEL_COR, x2_auth))
+names(d)<-c("Type", "Authorities Score")
+datatable(d, filter ="top")
+```
+#Stats
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_auth)
+sd(x2_auth)
+```
+#Plotting based only on Authorities Scores 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=10*authority.score(x2)$vector,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     edge.arrow.size=0.1,
+     vertex.label.cex=log(degree(x2)+1)/20,
+     edge.width=log(edge.betweenness(x2, weights =E(x2)$weight))/50,
+     edge.curved = TRUE)
+
+#Solving Problems with legend rendering 
+a<-V(x2)$LABEL_COR
+b<-V(x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Network Authorities Scores  Sized - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Mean Authorities Scores: %.2f\n SD Authorities Scores: %.2f",
+     mean(x2_auth),
+     sd(x2_auth)))
+```
+#2.10.3 Google PageRank 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#PageRank
+V(x2)$page.rank<-page.rank(x2)$vector
+x2_pr<-page.rank(x2)$vector %>% round(4)
+```
+#Table
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+d=as.data.frame(cbind(V(x2)$LABEL_COR, x2_pr))
+names(d)<-c("Type", "Page Rank")
+datatable(d, filter ="top")
+```
+#Stats
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_pr)
+sd(x2_pr)
+```
+#Plotting based only on Authorities Scores 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=200*page.rank(x2)$vector,
+     edge.arrow.size=0.1,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     vertex.label.cex=log(degree(x2)+1)/15,
+     edge.width=log(edge.betweenness(x2, weights =E(x2)$weight))/100,
+     edge.curved = TRUE)
+
+#Solving Problems with legend rendering 
+a<-V(x2)$LABEL_COR
+b<-V(x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Network Google Page Rank Sized - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Mean Page Rank Scores: %.2f\n SD Page Rank Scores: %.2f",
+     mean(x2_pr),
+     sd(x2_pr)))
+```
+#Saving HITS and  Degree
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+# We will plot 6 graphs in 2 rows and 3 columns:
+prPB<-page_rank(x2)$vector
+hPB<-hub.score(x2)$vector
+authPB<-authority.score(x2)$vector
+indegPB<-degree(x2, mode="in")
+outdegPB<-degree(x2, mode="out")
+```
+#Plotting all together 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}  
+op <- par(mfrow = c(2, 3),oma=c(0,0,2,0))
+plot(prPB, hPB, xlab="PageRank", ylab="Hubs", col="blue")
+plot(prPB, authPB, xlab="PageRank", ylab="Authorities", col="blue") 
+plot(hPB, authPB, xlab="Hubs", ylab="Authorities", col="blue") 
+plot(indegPB, outdegPB, xlab="In- degree", ylab="Out- degree", col="blue") 
+plot(indegPB, authPB, xlab="In- degree", ylab="Authorities", col="blue")
+plot(outdegPB, hPB, xlab="Out- degree", ylab="Hubs", col="blue")
+title("Hits by in and out degree - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", outer=TRUE)
+par(op)
+```
+#Top HITs
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+##Create a matrix to output:
+topnamesPB=as.data.frame(cbind(prPB,hPB,authPB,indegPB,outdegPB)) %>% round(4)
+names(topnamesPB) <- c("PageRank","Hubs","Authorities","In- degree","Out- degree")
+```
+#Table with HITS
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+datatable(topnamesPB, filter = "top")
+```
+##2.10.3.1 Ego Network CAPSAD - Example considering its high page rank
+#2.10.3.1.1 All connections 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Making igrpah ego object
+make_ego_graph_all_x2<-make_ego_graph(x2, order=1, V(x2)[V2_LABEL_ID=="q170_CAPS...CAPS.AD"], mode ="all", mindist = 0)[[1]]
+
+#Plotting ego based on Page Rank 
+plot(make_ego_graph_all_x2, 
+     layout=layout.kamada.kawai(make_ego_graph_all_x2), 
+     vertex.label=get.vertex.attribute(make_ego_graph_all_x2,"LABEL_COR"),
+     vertex.size=30*sqrt(page.rank(make_ego_graph_all_x2)$vector),
+     edge.arrow.size=0.1,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     vertex.label.cex=log(degree(make_ego_graph_all_x2)+1)/10,
+     edge.width=log(edge.betweenness(make_ego_graph_all_x2))/100,
+     edge.curved = TRUE)
+
+#Solving Problems with legend rendering 
+a<-V(make_ego_graph_all_x2)$LABEL_COR
+b<-V(make_ego_graph_all_x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Ego Network Page Rank Sized - All connections from CAPSAD - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Mean Page Rank Scores: %.2f\n SD Page Rank Scores: %.2f",
+     mean(page.rank(make_ego_graph_all_x2)$vector),
+     sd(page.rank(make_ego_graph_all_x2)$vector)
+     ))
+```
+#2.10.3.1.2 Out connections 
+#Making igrpah ego object
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+make_ego_graph_out_x2<-make_ego_graph(x2, order=1, V(x2)[V2_LABEL_ID=="q170_CAPS...CAPS.AD"], mode ="out", mindist = 0)[[1]]
+```
+#Plotting ego based on Page Rank 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(make_ego_graph_out_x2, 
+     layout=layout.kamada.kawai(make_ego_graph_out_x2), 
+     vertex.label=get.vertex.attribute(make_ego_graph_out_x2,"LABEL_COR"),
+     vertex.size=100*page.rank(make_ego_graph_out_x2)$vector,
+     edge.arrow.size=0.1,
+    vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     vertex.label.cex=log(degree(make_ego_graph_out_x2)+1)/10,
+     edge.width=log(edge.betweenness(make_ego_graph_out_x2))/100,
+     edge.curved = TRUE)
+
+#Solving Problems with legend rendering 
+a<-V(make_ego_graph_out_x2)$LABEL_COR
+b<-V(make_ego_graph_out_x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Ego Network Page Rank Sized - Out Connections from CAPSAD - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Mean Page Rank Scores: %.2f\n SD Page Rank Scores: %.2f",
+     mean(page.rank(make_ego_graph_out_x2)$vector),
+     sd(page.rank(make_ego_graph_out_x2)$vector)
+     ))
+```
+#2.10.3.1.3 - In connections 
+#Making igrpah ego object
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+make_ego_graph_in_x2<-make_ego_graph(x2, order=1, V(x2)[V2_LABEL_ID=="q170_CAPS...CAPS.AD"], mode ="in", mindist = 0)[[1]]
+```
+#Plotting ego based on Page Rank 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(make_ego_graph_in_x2, 
+     layout=layout.kamada.kawai(make_ego_graph_in_x2), 
+     vertex.label=get.vertex.attribute(make_ego_graph_in_x2,"LABEL_COR"),
+     vertex.size=100*page.rank(make_ego_graph_in_x2)$vector,
+     edge.arrow.size=0.1,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     vertex.label.cex=log(degree(make_ego_graph_in_x2))/10,
+     edge.width=log(edge.betweenness(make_ego_graph_in_x2))/100,
+     edge.curved = TRUE)
+
+#Solving Problems with legend rendering 
+a<-V(make_ego_graph_in_x2)$LABEL_COR
+b<-V(make_ego_graph_in_x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Ego Network CAPS AD Page Rank Sized - In connections from CAPS AD - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Mean Page Rank Scores: %.2f\n SD Page Rank Scores: %.2f",
+     mean(page.rank(make_ego_graph_in_x2)$vector),
+     sd(page.rank(make_ego_graph_in_x2)$vector)
+     ))
+```
+##2.10.4 Removing CAPSAD from its own ego network-  Example considering its high page rank and resilience test
+#Making igrpah ego object
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+make_ego_graph_all_x2_without_CAPSAD<-delete_vertices(make_ego_graph_all_x2,V(make_ego_graph_all_x2)[V2_LABEL_ID=="q170_CAPS...CAPS.AD"])
+```
+#Plotting ego based on Page Rank 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(make_ego_graph_all_x2_without_CAPSAD, 
+     layout=layout.kamada.kawai(make_ego_graph_all_x2_without_CAPSAD), 
+     vertex.label=get.vertex.attribute(make_ego_graph_all_x2_without_CAPSAD,"LABEL_COR"),
+     vertex.size=100*page.rank(make_ego_graph_all_x2_without_CAPSAD)$vector,
+     edge.arrow.size=0.1,
+     vertex.frame.color="#ffffff",
+      vertex.label.color="black",
+     vertex.label.cex=log(page.rank(make_ego_graph_all_x2_without_CAPSAD)$vector+1)*10,
+     edge.width=edge.betweenness(make_ego_graph_all_x2_without_CAPSAD)/500,
+     edge.curved = TRUE)
+#Solving Problems with legend rendering 
+a<-V(make_ego_graph_all_x2_without_CAPSAD)$LABEL_COR
+b<-V(make_ego_graph_all_x2_without_CAPSAD)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Ego Network CAPS AD Page Rank Sized - All Connections Removing CAPS AD - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Mean Page Rank Scores: %.2f\n SD Page Rank Scores: %.2f",
+     mean(page.rank(make_ego_graph_all_x2_without_CAPSAD)$vector),
+     sd(page.rank(make_ego_graph_all_x2_without_CAPSAD)$vector)
+     ))
+```
+##2.10.5 Removing complex services from CAPSAD ego network -  Example considering its high page rank and resilience test (!= CAPSAD, PRONTO-SOCORRO, AMBULATÓRIO, SAMU)
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Making igrpah ego object - without (!= CAPSAD, PRONTO-SOCORRO, AMBULATÓRIO, SAMU)
+
+#Removing high complex services
+
+make_ego_graph_all_x2_without_complex<-
+  delete_vertices(make_ego_graph_all_x2,
+                  c(V(make_ego_graph_all_x2)
+                  [V2_LABEL_ID=="q170_CAPS...CAPS.AD"],#Removing CAPSAD - Psychosocial Treatment Center
+                  V(make_ego_graph_all_x2)
+                  [V2_LABEL_ID=="q163_Assistência.Hospitalar...Hospital.de.Pronto.Socorro...HPS"], #Removing PRONTO-SOCORRO - Emergency Hospital
+                  V(make_ego_graph_all_x2)
+                  [V2_LABEL_ID=="q192_Ambulatório.de.Saúde.Mental...Centro.de.Atenção.à.Saúde.Mental..CASM."],#Removing AMBULATÓRIO - Outpatient Center
+                  V(make_ego_graph_all_x2)
+                  [V2_LABEL_ID=="q191_Urgência.Emergência...Serviço.de.Atendimento.Móvel.de.Urgência..SAMU."] #Removing SAMU - Emergency Mobile Service ? WTF
+                  ))
+```
+#Plotting ego based on Page Rank 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(make_ego_graph_all_x2_without_complex, 
+     layout=layout.kamada.kawai(make_ego_graph_all_x2_without_complex), 
+     vertex.label=get.vertex.attribute(make_ego_graph_all_x2_without_complex,"LABEL_COR"),
+     vertex.size=30*sqrt(page.rank(make_ego_graph_all_x2_without_complex)$vector),
+     edge.arrow.size=0.1,
+     vertex.label.cex=log(page.rank(make_ego_graph_all_x2_without_complex)$vector+1)/10,
+     edge.width=edge.betweenness(make_ego_graph_all_x2_without_complex)/500,
+     vertex.frame.color="#ffffff",
+      vertex.label.color="black",
+     edge.curved = TRUE)
+
+#Solving Problems with legend rendering 
+a<-V(make_ego_graph_all_x2_without_complex)$LABEL_COR
+b<-V(make_ego_graph_all_x2_without_complex)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Ego Network CAPS AD Page Rank Sized - All Connections Removing High Complex Service - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Mean Page Rank Scores: %.2f\n SD Page Rank Scores: %.2f",
+     mean(page.rank(make_ego_graph_all_x2_without_complex)$vector),
+     sd(page.rank(make_ego_graph_all_x2_without_complex)$vector)
+     ))
+```
+
+#2.11.1 Minimum spanning tree non-normalized that connects all the vertices together with the minimal total edges. - it seems that we have a problem with legends - check this out further
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Creating Minimum spanning tree
+msp_x2<-mst(x2)
+```
+#Plotting based only on degree measures 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(msp_x2, 
+     layout=layout.kamada.kawai(msp_x2), 
+     vertex.label=get.vertex.attribute(msp_x2,"LABEL_COR"),
+     vertex.size=degree(msp_x2)/2,
+     edge.arrow.size=0.01,
+     vertex.label.cex=degree(msp_x2)/50,
+     edge.width=log(edge.betweenness(msp_x2, weights =E(msp_x2)$msp_x2))/5,
+      vertex.frame.color="#ffffff",
+      vertex.label.color="black",
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(msp_x2)$LABEL_COR
+b<-V(msp_x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Minimum Spanning Tree Non-normalized - from 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Degree: %.2f\nMedian Out Degree: %.2f",
+     median(degree(msp_x2, mode="in")), 
+     median(degree(msp_x2, mode="out"))
+   ))
+```
+#2.11.1.1 Alternative Visualization - Minimum spanning tree non-normalized that connects all the vertices together with the minimal total edges. - it seems that we have a problem with legends - check this out further
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Creating Minimum spanning tree
+msp_x2<-mst(x2)
+
+#Plotting based only on degree measures 
+plot(msp_x2, 
+     layout=layout.auto(msp_x2), 
+     vertex.label=get.vertex.attribute(msp_x2,"LABEL_COR"),
+     vertex.size=sqrt(degree(msp_x2)),
+     edge.arrow.size=0.1,
+     vertex.label.cex=sqrt(degree(msp_x2))/50,
+     edge.width=log(edge.betweenness(msp_x2, weights=E(msp_x2)$msp_x2))/5,
+      vertex.frame.color="#ffffff",
+      vertex.label.color="black",
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(msp_x2)$LABEL_COR
+b<-V(msp_x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Alternative Visualization -Minimum Spanning Tree Non-normalized - from 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Degree: %.2f\nMedian Out Degree: %.2f",
+     median(degree(msp_x2, mode="in")), 
+     median(degree(msp_x2, mode="out"))
+   ))
+```
+#2.11.1.2 Minimum weighted spanning tree that connects all the vertices together with the minimal total weighting for its edges. - it seems that we have a problem with legends - check this out further
+
+Atention: Weighted edges are considered here as barries as we are trying to find the easiest path with minimal weight - so considering the inverse of weight (1/weight) are we using "unacess" and "untrust" as barries - this would cool   
+
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Creating Minimum weighted spanning tree
+msp_x2_w<-minimum.spanning.tree(x2, weights=1/edge.betweenness(x2, weights =E(x2)$weight), algorithm='prim')
+
+#Plotting based only on degree measures 
+plot(msp_x2_w, 
+     layout=layout.auto(msp_x2_w), 
+     vertex.label=get.vertex.attribute(msp_x2_w,"LABEL_COR"),
+     vertex.size=sqrt(degree(msp_x2_w)),
+     edge.arrow.size=0.1,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     vertex.label.cex=sqrt(degree(msp_x2_w))/20,
+     edge.width=1/edge.betweenness(msp_x2_w, weights =E(msp_x2_w)$msp_x2_w)*2,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(msp_x2_w)$LABEL_COR
+b<-V(msp_x2_w)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Minimum Weighted Spanning Tree (Edge Betweenness) - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Degree: %.2f\nMedian Out Degree: %.2f",
+     median(degree(msp_x2_w, mode="in")), 
+     median(degree(msp_x2_w, mode="out"))
+   ))
+```
+#3.2.1 Reciprocity Default
+Reciprocity Default - Proportion of mutual connections - probability that hte opposite counterpart of a directed graph is also included
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+reciprocity(x2, mode="default")
+```
+#3.2.2 Reciprocity Ratio
+Reciprocity Ratio - Probability  of mutual connections between a vertex pair - if we know - probability that hte opposite counterpart of a directed graph is also included in the 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+reciprocity(x2, mode="ratio")
+```
+#3.4 Dyad Census
+
+A dyad consists of an unordered pair of actors and links that exist between two actors of the pair. Dyads are
+2-subgraphs where a subgraph is a subset of actors taken from the complete set of network actors and all links
+between them http://file.scirp.org/pdf/SN_2013012915270187.pdf. 
+
+#Dyad Census (Number of pairs with mutual connections "mut" and number of pairs with non-mutual connections "asym")
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+dyad.census_x2<-dyad.census(x2)
+```
+# Calculating reciprocity - just as an example based on dyads
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+2*dyad_census(x2)$mut/ecount(x2) # Calculating reciprocity
+```
+#3.4 Dyad Census classified by mutal non-mutual and no connection
+#3.4.1 Dyad Census
+#Dyad - Classify dyads in a directed graphs
+#The number of pairs with mutual connections.
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+dyad.census_x2_mut<-dyad.census_x2$mut
+dyad.census_x2_mut
+```
+#The number of pairs with non-mutual connections.
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+dyad.census_x2_asym<-dyad.census_x2$asym
+dyad.census_x2_asym
+```
+#The number of pairs with no connection between them.
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+dyad.census_x2_null<-dyad.census_x2$null
+dyad.census_x2_null
+```
+#3.5 - Triad Census - Check this out in order to understand triad lables
+
+The studies about transitivity in social networks led Holland and Leinhardt (1975) to propose that the local structure in social networks can be expressed by the triad census or triad count, the numbers of triads of any kinds.
+
+The following labels gives the 16 different triads for directed graphs. The coding refers to the numbers of mutual, asymmetric, and null dyads, with a further identifying letter: Up, Down, Cyclical, Transitive.
+
+E.g., 1-2-0-D has *1* mutual, *2* asymmetric, *0* null dyads, and the *Down* orientation.
+
+You can see more here:
+<http://www.stats.ox.ac.uk/~snijders/Trans_Triads_ha.pdf>
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Triad Census 
+tc_x2 <- triad.census(x2)
+
+#Triad Census Label 
+census_labels = c('003',
+                  '012',
+                  '102',
+                  '021D',
+                  '021U',
+                  '021C',
+                  '111D',
+                  '111U',
+                  '030T',
+                  '030C',
+                  '201',
+                  '120D',
+                  '120U',
+                  '120C',
+                  '210',
+                  '300')
+
+#Saving in a dataframe for further studies
+triad_df_x2 <- data.frame(census_labels,tc_x2)
+write.csv(triad_df_x2, "~/SNArRDJF/Banco Redes R/x2_complet_triads.csv")
+```
+#3.5.1 - Triad Census Types 
+#Describing triads
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+triad_df_x2
+datatable(triad_df_x2)
+```
+#3.7 Distances and paths - shortest distance between each pair of nodes in the network (in both directions for directed graphs).
+
+#3.7.1 Average path length between any two given nodes
+Calculates the average path length in a graph, by calculating the shortest paths between all pairs of vertices (both ways for directed graphs). This function does not consider edge weights currently and uses a breadth-first search
+#Average path length
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+mean_distance(x2, directed=T, unconnected = T)
+```
+#3.7.2 Shortest Paths
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Shortest Paths
+x2_sp_in <- shortest.paths(x2, mode='in', weights=E(x2)$weight) # sames as bellow
+x2_sp_out <- shortest.paths(x2, mode='out', weights=E(x2)$weight) #same as above
+x2_sp_all <- shortest.paths(x2, mode='all', weights=E(x2)$weight) # all
+```
+#Shortest Paths #in
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_sp_in[which(x2_sp_in != Inf)])
+sd(x2_sp_in[which(x2_sp_in != Inf)])
+```
+#Shortest Paths #out
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_sp_out[which(x2_sp_out != Inf)])
+sd(x2_sp_out[which(x2_sp_out != Inf)])
+```
+#Shortest Paths #all
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_sp_out[which(x2_sp_out != Inf)])
+sd(x2_sp_out[which(x2_sp_out != Inf)])
+```
+#3.7.3 Length of all shortest paths in the graph:
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#All shortest paths 
+distances_sp_all_x2<-distances(x2, mode="all", weights=E(x2)$weight)
+#distances_sp_all_x2
+
+#In shortest paths 
+distances_sp_in_x2<-distances(x2, mode="in",weights=E(x2)$weight)
+#distances_sp_in_x2
+
+#Out shortest paths 
+distances_sp_out_x2<-distances(x2, mode="out", weights=E(x2)$weight)
+#distances_sp_out_x2
+```
+#3.7.4 Histogram from shortest path length between each pair of vertices. 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+sp<-distance_table(x2, directed = TRUE)
+short_paths<-c(sp$unconnected, sp$res)
+labels<-c("unconnected", "one", "two","three", "four", "five", "six")
+sphist<-as.data.frame(cbind(labels, short_paths))
+names(sphist)<-c("Short Paths Length - Vertex Pairs","Count")
+datatable(sphist)
+```
+#3.7.5 Distance from CAPSAD - just as an example for futher explortion
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Setting distance from an vertex
+
+x2_dist.from.CAPSAD <- distances(x2, v=V(x2)[V2_LABEL_ID=="q170_CAPS...CAPS.AD"], to=V(x2), weights=E(x2)$weight)
+
+#Saving distance on igraph object 
+V(x2)$x2_dist.from.CAPSAD<-x2_dist.from.CAPSAD
+
+# Set colors to plot distances:
+oranges <- colorRampPalette(c("dark red", "gold"))
+col <- oranges(max(x2_dist.from.CAPSAD)+1)
+col <- col[x2_dist.from.CAPSAD+1]
+
+#Saving as Vertex properties
+V(x2)$col<-col
+
+#Plotting distance from CAPSAD 
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.color=col, 
+     vertex.label=x2_dist.from.CAPSAD,
+     vertex.label.color="white",
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     vertex.size=sqrt(degree(x2)),
+     edge.arrow.size=0.1,
+     vertex.label.cex=log(degree(x2))/10,
+     edge.width=edge.betweenness(x2, weights=E(x2)$x2)/500,
+     edge.curved = TRUE)
+
+#Solving Problems with legend rendering 
+a<-V(x2)$x2_dist.from.CAPSAD
+b<-V(x2)$col
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Distance from CAPS AD - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Avarege path length: %.2f",
+     mean_distance(x2, directed=T, unconnected = T)))
+```
+
+#3.76 Transitivity - clustering coefficient
+
+# Transitivity Global
+Net is treated as an undirected network global - ratio of triangles (direction disregarded) to connected triples.
+
+#Non-weighted
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+transitivity(x2, weights=E(x2)$weight, type="global")
+```
+#Weighted by Vertex
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+transitivity_weighted<-transitivity(x2, weights=E(x2)$weight,type="weighted")
+```
+#Descriptive Statistics for Weighted Transitivity by Vertex 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(transitivity_weighted[which(transitivity_weighted != Inf)])
+sd(transitivity_weighted[which(transitivity_weighted != Inf)])
+```
+
+# Transitivity Local
+Ratio of triangles to connected triples each vertex is part of.
+
+#Transitivity Local - Non-weighted
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$transitivity_local<-transitivity(x2, type="local") 
+transitivity_local<-transitivity(x2, type="local") #local - ratio of triangles to connected triples each vertex is part of.
+```
+#Descriptive Statistics for Local Transitivity by Vertex 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(transitivity_local[which(transitivity_local != Inf)])
+sd(transitivity_local[which(transitivity_local != Inf)])
+```
+#Transitivity Barrat Weighted
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$transitivity_local_w<-transitivity(x2, type="barrat") 
+transitivity_local_w<-transitivity(x2, weights=E(x2)$weight, type="barrat")
+```
+#Descriptive Statistics for Barrat Weighted Transitivity by Vertex 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(transitivity_local_w[which(transitivity_local_w != Inf)])
+sd(transitivity_local_w[which(transitivity_local_w != Inf)])
+```
+
+#3.8 Reachability
+
+An actor is "reachable" by another if there exists any set of connections by which we can trace from the source to the target actor, regardless of how many others fall between them. If the data are asymmetric or directed, it is possible that actor A can reach actor B, but that actor B cannot reach actor A. With symmetric or undirected data, of course, each pair of actors either are or are not reachable to one another. If some actors in a network cannot reach others, there is the potential of a division of the network. Or, it may indicate that the population we are studying is really composed of more than one sub-populations.
+
+#Declaring Reachability function calculation for each vertex
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+reachability <- function(g, m) {
+  reach_mat = matrix(nrow = vcount(g), ncol = vcount(g))
+  for (i in 1:vcount(g)) {
+    reach_mat[i,] = 0
+    this_node_reach <- subcomponent(g, i, mode = m) # used "i" instead of "(i - 1)"
+    
+    for (j in 1:(length(this_node_reach))){
+      alter = this_node_reach[j]# removed "+ 1"
+      reach_mat[i, alter] = 1
+      }
+    }
+  return(reach_mat)
+  }
+``` 
+#Reachability
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_reach_in <- reachability(x2, 'in')
+x2_reach_out <- reachability(x2, 'out')
+```
+#Descriptive - Reachability - in
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+mean(x2_reach_in[which(x2_reach_in != Inf)])
+sd(x2_reach_in[which(x2_reach_in != Inf)])
+```
+##Descriptive - Reachability  - out
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+mean(x2_reach_out[which(x2_reach_out != Inf)])
+sd(x2_reach_out[which(x2_reach_out != Inf)])
+```
+
+#3.9 Subgroups and communities
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+x2_u <- as.undirected(x2, mode= "collapse",
+                         edge.attr.comb=list(weight="sum", "ignore"))
+```
+
+#3.9.1
+#Find cliques (complete subgraphs of an undirected graph)
+
+Graph clique is a subset of vertices of a graph such that every two vertices in the clique are adjacent. - ***To check****
+
+#Number of cliques
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+cliques_x2_u<-cliques(x2_u) # list of cliques 
+length(cliques_x2_u)
+```
+#Number of cliques by sizes
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#cliques_x2_u_size<-sapply(cliques(x2_u), length) # too intesive calculation
+```
+#Size of largest clique 
+A maximum clique is a clique that cannot be extended by including one more adjacent vertex (not included in larger one). It can be defined also as a clique of the largest possible size in a given graph.The graph clique number is the size of the maximum clique.
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+clique_num(x2_u)
+```
+#Number of maximal cliques
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+count_max_cliques(x2_u)
+```
+#Finding of largest cliques
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+largest_cliques<-largest_cliques(x2_u) # cliques with max number of nodes
+length(largest_cliques)
+```
+
+#3.9.3 Plotting the largest cliques - important to consider connectivite 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Generating undirected graph
+as.undirected_x2_u<-as.undirected(x2_u)
+
+#Coloring largest clique as gold and others one as gray
+vcol <- rep("grey80", vcount(x2_u))
+vcol[unlist(largest_cliques(x2_u))] <- "gold"
+
+#Saving gray and gold as igraph attribute
+V(as.undirected_x2_u)$vcol<-vcol
+
+#Saving labels to display as legend
+V(as.undirected_x2_u)$vcollabel[V(as.undirected_x2_u)$vcol=="gold"]<-"Largets Clique"
+V(as.undirected_x2_u)$vcollabel [V(as.undirected_x2_u)$vcol=="grey80"]<-"Others"
+```
+
+#Plotting based only on degree measures 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+plot(as.undirected(x2_u), 
+     layout=layout.kamada.kawai(as.undirected(x2_u)), 
+     vertex.label=get.vertex.attribute(as.undirected(x2_u),"LABEL_COR"),
+     vertex.color=vcol,
+     vertex.frame.color="#ffffff",
+     vertex.label.color="black",
+     vertex.size=sqrt(degree(as.undirected(x2_u))),
+     edge.arrow.size=0.1,
+     vertex.label.cex=log(degree(as.undirected(x2_u))+1)/10,
+     edge.width=log(edge.betweenness(as.undirected(x2_u), weights =E(as.undirected(x2_u))$x2))/50,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(as.undirected_x2_u)$vcollabel
+b<-V(as.undirected_x2_u)$vcol
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Network Vertex Degree Sized - classfied by largest clique vs. others", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Size of largest clique: %.1f\nNumber of maximal cliques: %.1f",
+     clique_num(x2_u), 
+     count_max_cliques(x2_u)
+   ))
+```
+
+#3.9.4 K-core
+k-core is a maximal subset of vertices such that each is connected to at least k others in the subset.R has a function wich calculates the coreness for each vertex.The coreness of a vertex is k if it belongs to the k-core but not to the (k+1)-core.
+
+#3.9.4.1 Finding maximum k-core and pick out it on graph
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+coreness <- graph.coreness(x2) 
+max_cor <- max(coreness)
+```
+#Max Coreness
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+max_cor
+```
+#3.9.4.2 Heat map for coreness
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Plotting based only on coreness
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     #vertex.size=degree(x2)/10,
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     vertex.color = color_bar[coreness],
+     edge.arrow.size=degree(x2)/10000,
+     vertex.label.cex=0.3,
+     edge.width=(edge.betweenness(x2, weights=V(x2)$weight))/500,
+     edge.curved = TRUE
+     )
+#Solving Problems with legend rendering 
+a<-coreness
+b<-color_bar[coreness]
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=2,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .5)
+
+#Adding Title
+  title("Coreness Colored Graph - 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ", cex = .5)
+  text(x = -1, y = -1.2, cex = .5, labels = 
+   sprintf("Mean Coreness: %.2f\nMax Coreness: %.2f",
+     mean(graph.coreness(x2)), 
+     max(graph.coreness(x2))
+   ))
+```
+
+#4. Network communities
+Network communities are groups of vertices such that vertices inside the group connected with many more edges than between groups.
+
+Edge betweenness Edge betweenness is equal to the number of shortest paths σst(e) from all vertices
+to all others that pass through that edge e
+
+#3.10 Betweenness Edges Newman-Girvan Edge-Betweenness
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Edge Betweenness
+E(x2)$edge.btweenness<-edge.betweenness(x2, weights =E(x2)$weight)
+x2_edge.betweenness <-edge.betweenness(x2, weights =E(x2)$weight)
+```
+
+The Newman-Girvan algorithm detects communities by progressively removing edges from the original network. The Girvan-Newman algorithm focuses on edges that are most likely “between” communities.
+
+Algorithm:
+• Step 1: the betweenness of all existing edges in the network is calculated first. 
+• Step 2: the edge with the highest betweenness is removed.
+• Step 3: the betweenness of all edges affected by the removal is recalculated.
+• Step 4: steps 2 and 3 are repeated until no edges remain.
+
+#Edge Betweenness Descriptive
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+summary(x2_edge.betweenness)
+sd(x2_edge.betweenness)
+```
+#Edge Betweenness Table
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+labels<-attr(E(x2), "vnames")
+edgebt<-cbind(round(x2_edge.betweenness,2),labels)
+datatable(edgebt)
+```
+#3.10.2 Plotting community by using edge betweenness
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Plotting based only on degree measures 
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.size=sqrt(degree(x2)),
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     mark.groups = by(seq_along(x2_edge.betweenness.community),
+                      x2_edge.betweenness.community, 
+                      invisible),   ## Add community indicating background colors
+     edge.arrow.size=0.1,
+     vertex.label.cex=log(degree(x2)+1)/10,
+     edge.width=log(edge.betweenness(x2, weights =E(x2)$weight))/5,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$LABEL_COR
+b<-V(x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Network Vertex Degree Sized - Classfied by Communities using Edges Betweenness", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Degree: %.2f\nMedian Out Degree: %.2f",
+     median(degree(x2, mode="in")), 
+     median(degree(x2, mode="out"))
+   ))
+```
+
+#3.11.Community detection (Random walk)
+
+The associated graphs are in general globally sparse but locally dense: there exist groups of vertices, called communities, highly interconnected but with few links to other vertices. This kind of structure brings out much information about the network. For example, in a metabolic network the communities correspond
+to biological functions of the cell - Random Walk is a method to identify communities consdering that random walks on a graph tend to get “trapped” into densely connected parts corresponding to communities.
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Community detection (Random walk)
+x2_walktrap.community <- walktrap.community(x2)
+```
+
+#3.11.1 Network Dendograma
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+dend.g.network_x2 <- as.dendrogram(x2_walktrap.community, se.modularity=TRUE)
+plot(dend.g.network_x2, main = "Dendrograma x2", nodePar=list(pch=c(NA, 20)))
+```
+
+#3.11.2 Saving Random walk community
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+V(x2)$walktrap.community <- membership(x2_walktrap.community)
+x2_walktrap.community <- membership(x2_walktrap.community)
+```
+
+#3.11.3 Plotting Random walk community 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Plotting based only on degree measures 
+plot(x2, 
+     layout=layout.kamada.kawai(x2), 
+     vertex.label=get.vertex.attribute(x2,"LABEL_COR"),
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     vertex.size=sqrt(degree(x2)),
+     mark.groups = by(seq_along(x2_walktrap.community),
+                      x2_walktrap.community, 
+                      invisible),   ## Add community indicating background colors
+     edge.arrow.size=0.1,
+     vertex.label.cex=log(degree(x2)+1)/10,
+     edge.width=log(edge.betweenness(x2, weights =E(x2)$weight))/5,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(x2)$LABEL_COR
+b<-V(x2)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Network Vertex Degree Sized - Classfied by Communities using Random Walk", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Degree: %.2f\nMedian Out Degree: %.2f",
+     median(degree(x2, mode="in")), 
+     median(degree(x2, mode="out"))
+   ))
+```
+
+#3.12 Decomposed Graph 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+comps_x2 <- decompose.graph(x2)
+sapply(comps_x2, diameter)
+table(sapply(comps_x2, vcount))
+```
+
+#3.12.1 Getting Plotting Decomposed Graphs
+
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+comps_x21<-comps_x2[[1]]
+#comps_x22<-comps_x2[[2]]
+#comps_x23<-comps_x2[[3]]
+#comps_x24<-comps_x2[[4]]
+#comps_x25<-comps_x2[[5]]
+#comps_x26<-comps_x2[[6]]
+#comps_x27<-comps_x2[[7]]
+#comps_x28<-comps_x2[[8]]
+#...
+```
+
+#3.12.2 Plotting based Decomposed Graphs
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Plotting based Decomposed Graphs
+plot(comps_x21, 
+     layout=layout.kamada.kawai(comps_x21), 
+     vertex.label=get.vertex.attribute(comps_x21,"LABEL_COR"),
+          vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     vertex.size=sqrt(degree(comps_x21)),
+     edge.arrow.size=0.1,
+     vertex.label.cex=log(degree(comps_x21)+1)/10,
+     edge.width=log(edge.betweenness(comps_x21, weights=E(comps_x21)$comps_x21))/5,
+     edge.curved = TRUE
+     )
+
+#Solving Problems with legend rendering 
+a<-V(comps_x21)$LABEL_COR
+b<-V(comps_x21)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f<-t(e$a)
+g<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(g),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Network Vertex Degree Sized - Classfied by Communities using Decomposed", sub = "Source: from authors ")
+  text(x = -1, y = -1.2, labels = 
+   sprintf("Median In Degree: %.2f\nMedian Out Degree: %.2f",
+     median(degree(comps_x21, mode="in")), 
+     median(degree(comps_x21, mode="out"))
+   ))
+```
+#3.14 Optimal Community - This is a NP complex problem - too intense
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#V(x2)$optimal_comm_x2 <- #membership(optimal.community(x2))
+#optimal_comm_x2 <- membership(optimal.community(x2))
+```
+
+#3.14 Diameter - length of the longest geodesic.
+
+#Diameter Non-weigthed 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+diameter(x2)
+x2_dim<-get.diameter(x2)
+x2_dim
+```
+#Diameter Weigthed 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+diameter(x2, weights=E(x2)$weight)
+x2_dim<-get.diameter(x2, weights=E(x2)$weight)
+x2_dim
+```
+
+#3.14.1 Plotting Diameter
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Preparing Nodes
+g<-x2
+d <- get.diameter(g)
+
+E(g)$color <- "grey"
+E(g)$width <- 1
+E(g, path=d)$color <- "red"
+E(g, path=d)$width <- 2
+V(g)$label.color <- "blue"
+V(g)$color  <- "SkyBlue2"
+V(g)[ d ]$label.color <- "black"
+V(g)[ d ]$color <- "red"
+
+#Plotting
+plot(g, 
+     layout=layout.kamada.kawai(g), 
+     vertex.label.dist=0, 
+     layout=layout.kamada.kawai(g),
+     vertex.label.color="black",
+     vertex.frame.color="#ffffff",
+     vertex.label=get.vertex.attribute(g,"LABEL_COR"),
+     vertex.size=sqrt(degree(g)),
+     edge.arrow.size=0.1,
+     vertex.label.cex=log(degree(g)+1)/10,
+     edge.width=edge.betweenness(g, weights=E(g)$x2)/500,
+     edge.curved = TRUE
+     
+     )
+
+#Solving Problems with legend rendering 
+a<-V(g)$LABEL_COR
+b<-V(g)$color
+c<-table(a,b)
+d<-as.data.frame(c)
+e<-subset(d, d$Freq>0)
+f.a<-t(e$a)
+f.b<-t(e$b)
+
+#Adding Legend
+legend(x=1, y=1.25,
+       legend=as.character(f.a),
+       pch=21,
+       col = "#777777", 
+       pt.bg=as.character(f.b),
+       pt.cex=4,
+       bty="n", 
+       ncol=1,
+       lty=1,
+       cex = .8)
+
+#Adding Title
+  title("Diameter of 1.2.CENTRALIDADE - ALGUM RELACIONAMENTO (x2)", sub = "Source: from authors ", xlab="created by igraph 0")
+#Adding Stats
+  text(x = -1, y = -1.2, labels =sprintf("Diameter: %.2f",diameter(g)))
+```
+
+#3.15 Maximal Independence Vertex Sets - return a set of vertex if there no edges between any two vertices in it ***Too Intense Calculation - commented code*** 
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+#Maximal Independence Vertex Sets
+#independence.number(x2)
+```
+
+#4. Saving objects with new variables and changes
+```{r, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
+save.image("~/SNArRDJF/2.SNA.RData") 
+#load("~/SNArRDJF/2.SNA.RData")# just in case 
+```
